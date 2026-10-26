@@ -1,0 +1,6 @@
+{
+  "name": "Chen — Conocimiento Libre",
+  "description": "Plataforma de conocimiento abierto, citas argumentativas, huecos del saber y estudio personal sin algoritmos de engagement.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

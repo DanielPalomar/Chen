@@ -1,0 +1,928 @@
+import {
+  Article,
+  KnowledgeGap,
+  Flashcard,
+  ModerationLogEntry,
+  Author,
+  ForumThread,
+  ClaimRecord,
+  UserProfile,
+  FreeBook,
+  KnowledgeArea,
+  OpenRepositoryItem,
+  PersonalChallenge,
+  ThesisAntithesisItem,
+  ExerciseItem,
+  GlossaryItem,
+} from '../types';
+
+export const INITIAL_AREAS: KnowledgeArea[] = [
+  {
+    id: 'area-filosofia',
+    slug: 'filosofia-epistemologia',
+    name: 'Filosofía y Epistemología',
+    description: 'Fundamentos del conocimiento, lógica, demarcación científica, ética y teoría de la argumentación.',
+    iconName: 'Compass',
+    moderators: [
+      { name: 'Dra. Clara Méndez', role: 'Investigadora en Filosofía de la Ciencia', githubUser: 'claramendez-sci' },
+      { name: 'Dr. Alejandro Vives', role: 'Profesor de Lógica Formal' },
+    ],
+    articleCount: 12,
+    gapCount: 3,
+  },
+  {
+    id: 'area-computacion',
+    slug: 'computacion-sistemas',
+    name: 'Computación y Sistemas',
+    description: 'Algoritmos, teoría de tipos, complejidad computacional, sistemas distribuidos y arquitectura abierta.',
+    iconName: 'Cpu',
+    moderators: [
+      { name: 'Andrés Keller', role: 'Ingeniero de Software y Matemático', githubUser: 'andreskeller-dev' },
+      { name: 'Dra. Sofía Rueda', role: 'Investigadora en Métodos Formales' },
+    ],
+    articleCount: 18,
+    gapCount: 4,
+  },
+  {
+    id: 'area-matematicas',
+    slug: 'matematicas-puras-aplicadas',
+    name: 'Matemáticas',
+    description: 'Análisis matemático, álgebra abstracta, topología, probabilidad y geometría analítica.',
+    iconName: 'Pi',
+    moderators: [
+      { name: 'Dr. Carlos Mendoza', role: 'Catedrático de Topología' },
+      { name: 'Elena Rostova', role: 'Docente de Cálculo Avanzado', githubUser: 'erostova-math' },
+    ],
+    articleCount: 15,
+    gapCount: 2,
+  },
+  {
+    id: 'area-fisica',
+    slug: 'fisica-cosmologia',
+    name: 'Física y Cosmología',
+    description: 'Mecánica cuántica, termodinámica de no equilibrio, astrofísica observacional y relatividad.',
+    iconName: 'Atom',
+    moderators: [
+      { name: 'Dr. Mateo Soria', role: 'Físico Teórico' },
+      { name: 'Dra. Lucía Baena', role: 'Investigadora en Radiación Cósmica' },
+    ],
+    articleCount: 9,
+    gapCount: 3,
+  },
+  {
+    id: 'area-biologia',
+    slug: 'biologia-bioquimica',
+    name: 'Biología y Bioquímica',
+    description: 'Biofísica molecular, evolución celular, genética de poblaciones y transporte celular.',
+    iconName: 'Dna',
+    moderators: [
+      { name: 'Dr. Miguel Ángel Torres', role: 'Docente de Bioquímica', githubUser: 'matorres-bio' },
+      { name: 'Dra. Beatriz Morales', role: 'Fisióloga Vegetal' },
+    ],
+    articleCount: 11,
+    gapCount: 2,
+  },
+  {
+    id: 'area-sociales',
+    slug: 'ciencias-sociales',
+    name: 'Ciencias Sociales',
+    description: 'Metodología sociológica, historia comparada, economía no especulativa y demografía.',
+    iconName: 'Users',
+    moderators: [
+      { name: 'Valeria Cárdenas', role: 'Socióloga Cuantitativa' },
+      { name: 'Martín Barba', role: 'Historiador Económico' },
+    ],
+    articleCount: 8,
+    gapCount: 1,
+  },
+  {
+    id: 'area-literatura',
+    slug: 'literatura-humanidades',
+    name: 'Literatura y Lingüística',
+    description: 'Análisis textual, semiótica, filología comparada y narrativa en lenguas ibéricas y globales.',
+    iconName: 'BookOpen',
+    moderators: [
+      { name: 'Prof. Gabriela Solano', role: 'Crítica Literaria' },
+      { name: 'Enrique Paz', role: 'Filólogo Clásico' },
+    ],
+    articleCount: 7,
+    gapCount: 1,
+  },
+];
+
+export const INITIAL_AUTHORS: Record<string, Author> = {
+  'usr-clara': {
+    id: 'usr-clara',
+    name: 'Dra. Clara Méndez',
+    bio: 'Investigadora en epistemología de la ciencia y demarcación científica. Profesora asociada en la Universidad Autónoma.',
+    role: 'Investigadora en Filosofía de la Ciencia',
+    areas: ['Filosofía y Epistemología', 'Computación y Sistemas'],
+    githubUser: 'claramendez-sci',
+    orcidId: '0000-0002-1825-0097',
+    linkedinUrl: 'https://linkedin.com/in/claramendez-demo',
+    personalUrl: 'https://claramendez.org',
+    kofiOrLiberapay: 'https://liberapay.com/claramendez',
+    changedMindCount: 3,
+    citationsReceivedCount: 19,
+    learningPathsCompleted: 2,
+    reputationByArea: {
+      'Filosofía y Epistemología': 340,
+      'Computación y Sistemas': 110,
+    },
+  },
+  'usr-miguel': {
+    id: 'usr-miguel',
+    name: 'Dr. Miguel Ángel Torres',
+    bio: 'Bioquímico y docente universitario. Especializado en cinética enzimática y biofísica de macromoléculas.',
+    role: 'Docente de Bioquímica',
+    areas: ['Biología y Bioquímica', 'Física y Cosmología'],
+    githubUser: 'matorres-bio',
+    orcidId: '0000-0001-9234-7711',
+    linkedinUrl: 'https://linkedin.com/in/matorres-demo',
+    personalUrl: 'https://matorres.bio',
+    kofiOrLiberapay: 'https://ko-fi.com/matorres',
+    changedMindCount: 1,
+    citationsReceivedCount: 24,
+    learningPathsCompleted: 4,
+    reputationByArea: {
+      'Biología y Bioquímica': 410,
+    },
+  },
+  'usr-andres': {
+    id: 'usr-andres',
+    name: 'Andrés Keller',
+    bio: 'Ingeniero de software y matemático autodidacta. Interesado en teoría de tipos y límites de la computabilidad algorítmica.',
+    role: 'Ingeniero de Sistemas Distribuidos',
+    areas: ['Computación y Sistemas', 'Matemáticas'],
+    githubUser: 'andreskeller-dev',
+    orcidId: '0000-0003-4412-8809',
+    personalUrl: 'https://keller.dev',
+    kofiOrLiberapay: 'https://liberapay.com/andreskeller',
+    changedMindCount: 4,
+    citationsReceivedCount: 16,
+    learningPathsCompleted: 3,
+    reputationByArea: {
+      'Computación y Sistemas': 295,
+      'Matemáticas': 180,
+    },
+  },
+};
+
+export const INITIAL_ARTICLES: Article[] = [
+  {
+    id: 'art-popper-falsabilidad',
+    slug: 'criterio-demarcacion-popper-falsabilidad',
+    title: 'El criterio de demarcación de Karl Popper y la falsabilidad empírica',
+    subtitle: 'Por qué predecir correlaciones estadísticas no equivale a formular hipótesis científicas refutables.',
+    excerpt: 'Examinamos la distinción entre confirmación inductiva y refutación deductiva en el marco de la epistemología científica contemporánea.',
+    author: INITIAL_AUTHORS['usr-clara'],
+    areaId: 'area-filosofia',
+    area: 'Filosofía y Epistemología',
+    level: 'intermediate',
+    license: 'CC BY-SA 4.0',
+    epistemicStatus: 'opinion',
+    epistemicNote: 'Análisis epistemológico fundado en "La lógica de la investigación científica" (Popper, 1934) y literatura de causalidad de Judea Pearl.',
+    aiDeclared: false,
+    visibility: 'public',
+    readTimeMinutes: 7,
+    publishedDate: '14 de Octubre, 2026',
+    lastUpdatedDate: '24 de Octubre, 2026',
+    versionNumber: '1.2',
+    citedByCount: 8,
+    versions: [
+      {
+        id: 'ver-1.0',
+        versionNumber: '1.0',
+        date: '14 de Octubre, 2026',
+        authorName: 'Dra. Clara Méndez',
+        reason: 'Publicación original del artículo con formulación de modus tollens.',
+      },
+      {
+        id: 'ver-1.1',
+        versionNumber: '1.1',
+        date: '18 de Octubre, 2026',
+        authorName: 'Dra. Clara Méndez',
+        reason: 'Añadida aclaración sobre la tesis de Duhem-Quine en respuesta a revisión abierta.',
+      },
+      {
+        id: 'ver-1.2',
+        versionNumber: '1.2',
+        date: '24 de Octubre, 2026',
+        authorName: 'Dra. Clara Méndez',
+        reason: 'Corrección formal en la ecuación de maximización de verosimilitud estadística.',
+      },
+    ],
+    corrections: [
+      {
+        date: '24 de Octubre, 2026',
+        detail: 'Corrección formal de la notación en la función de pérdida estocástica tras señalamiento de Andrés Keller.',
+        previousStance: 'Se trataba la minimización de pérdida como refutación directa.',
+        newStance: 'Se especifica que el reajuste estocástico de pesos no invalida hipótesis ontológicas en sentido falsacionista.',
+      },
+    ],
+    prerequisites: [
+      { id: 'art-intro-logica', title: 'Introducción al cálculo proposicional y reglas de inferencia' },
+    ],
+    videoEmbed: {
+      title: 'Seminario: Asimetría lógica entre verificación y falsabilidad',
+      embedUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+      provider: 'youtube',
+      chapters: [
+        { time: '00:00', seconds: 0, title: '1. El problema de la inducción de David Hume' },
+        { time: '03:15', seconds: 195, title: '2. La formulación popperiana del Modus Tollens' },
+        { time: '08:40', seconds: 520, title: '3. Límites epistémicos de la inferencia estadística' },
+        { time: '14:20', seconds: 860, title: '4. Protocolo propuesto de refutación explícita' },
+      ],
+      transcriptExcerpt: 'El punto de partida de Popper no es el desprecio por la observación empírica, sino el reconocimiento de una asimetría puramente lógica: ningún número finito de cisnes blancos observados puede probar deductivamente que todos los cisnes son blancos, pero la observación rigurosa de un único cisne negro basta para refutar deductivamente el enunciado universal.',
+    },
+    citations: [
+      {
+        id: 'cit-1',
+        targetArticleTitle: 'Causalidad e inferencia contrafáctica en sistemas complejos',
+        targetAuthor: 'Judea Pearl (2009)',
+        relation: 'supports',
+        quoteText: 'Las correlaciones sin grafo causal subyacente son insuficientes para discernir mecanismos invariantes ante intervenciones externas.',
+        explanation: 'Aporta respaldo causal matemático al principio de que la observación pasiva no basta para aislar leyes causales refutables.',
+        externalUrl: 'https://doi.org/10.1017/CBO9780511803161',
+        archiveUrl: 'https://web.archive.org/web/2026/https://doi.org/10.1017/CBO9780511803161',
+        linkStatus: 'ok',
+      },
+      {
+        id: 'cit-2',
+        targetArticleTitle: 'Dos dogmas del empirismo y la holística teórica',
+        targetAuthor: 'Willard Van Orman Quine (1951)',
+        relation: 'contradicts',
+        quoteText: 'Nuestros enunciados acerca del mundo exterior se someten al tribunal de la experiencia no individualmente, sino solo como un cuerpo corporativo.',
+        explanation: 'Objeción crucial (tesis Duhem-Quine): cuando una predicción falla, no siempre se descarta la hipótesis central; a menudo se modifican hipótesis auxiliares o condiciones iniciales.',
+        externalUrl: 'https://www.jstor.org/stable/2181906',
+        archiveUrl: 'https://web.archive.org/web/2026/https://www.jstor.org/stable/2181906',
+        linkStatus: 'archived',
+      },
+      {
+        id: 'cit-3',
+        targetArticleTitle: 'Teoría de la información algorítmica y complejidad de Kolmogorov',
+        targetAuthor: 'Gregory Chaitin (1987)',
+        relation: 'extends',
+        quoteText: 'Una teoría científica es comprensiva en tanto describe los datos con un programa computacional más corto que los datos mismos.',
+        explanation: 'Amplía el criterio popperiano conectando la falsabilidad con la compresión computacional de descripciones experimentales.',
+        externalUrl: 'https://chaitin.cs.auckland.ac.nz/',
+        linkStatus: 'ok',
+      },
+    ],
+    contentMarkdown: `## 1. La asimetría deductiva fundamental
+
+En *Logik der Forschung* (1934), Karl Popper postuló que la ciencia no progresa acumulando instancias favorables a una conjetura, sino diseñando experimentos concebidos específicamente para intentar derribarla. La estructura lógica fundamental es el *modus tollens*:
+
+$$\\frac{T \\to P, \\quad \\neg P}{\\neg T}$$
+
+Donde $T$ es la teoría formulada y $P$ es una predicción observable arriesgada. Si la observación rigurosa arroja $\\neg P$, la teoría queda deductivamente refutada. Por el contrario, verificar $P$ únicamente nos dice que la teoría ha salido provisionalmente indemne, pero jamás garantiza su verdad definitiva.
+
+## 2. Demarcación frente a modelos de optimización estadística
+
+En la actualidad observamos con frecuencia una confusión entre capacidad predictiva correlacional y valor epistémico explicativo. Cuando un sistema minimiza una función de pérdida empírica:
+
+$$\\mathcal{L}(\\theta) = -\\frac{1}{N}\\sum_{i=1}^N \\log P_\\theta(y_i \\mid x_i)$$
+
+Dicho procedimiento no formula hipótesis falsables en sentido popperiano. Si una predicción fracasa, no se deduce la falsedad de una premisa ontológica; simplemente se recalculan gradientes o se clasifica la discrepancia como varianza estocástica.
+
+## 3. Condiciones exigidas para un aporte riguroso en Chen
+
+1. **Condición de falsabilidad explícita**: Cada tesis debe declarar: *«¿Qué hallazgo experimental demostraría que mi planteamiento es erróneo?»*.
+2. **Citas con función declarada**: Quien cite debe aclarar si la fuente apoya, contradice o amplía el argumento.
+3. **Rectificación pública**: Cuando una objeción empírica refuta una parte de la tesis, el autor registra una corrección visible. En la ciencia real, corregirse suma, no resta.`,
+  },
+  {
+    id: 'art-cinetica-alosterica',
+    slug: 'cooperatividad-cinetica-enzimatica-hemoglobina',
+    title: 'Cooperatividad alostérica y el modelo MWC en la hemoglobina',
+    subtitle: 'Análisis biofísico de la transición Tensa a Relajada en el transporte macromolecular de oxígeno.',
+    excerpt: 'Estudio de las transiciones conformacionales coordinadas en proteínas tetraméricas y comparación con el modelo secuencial KNF.',
+    author: INITIAL_AUTHORS['usr-miguel'],
+    areaId: 'area-biologia',
+    area: 'Biología y Bioquímica',
+    level: 'advanced',
+    license: 'CC BY 4.0',
+    epistemicStatus: 'fact',
+    epistemicNote: 'Consenso bioquímico experimental respaldado por cristalografía de rayos X de Perutz y medidas calorimétricas de unión a ligando.',
+    aiDeclared: false,
+    visibility: 'public',
+    readTimeMinutes: 9,
+    publishedDate: '10 de Octubre, 2026',
+    lastUpdatedDate: '19 de Octubre, 2026',
+    versionNumber: '1.1',
+    citedByCount: 5,
+    citations: [],
+    contentMarkdown: `## 1. La curva sigmoidea de saturación
+
+A diferencia de la mioglobina, cuya unión al oxígeno responde a una hipérbola rectangular simple descrita por la ecuación de Michaelis-Menten, la hemoglobina exhibe una curva sigmoidea de saturación de Hill:
+
+$$\\theta = \\frac{[L]^n}{K_d + [L]^n}$$
+
+Donde $n \\approx 2.8$ es el coeficiente de Hill empírico, que demuestra una cooperatividad positiva entre las cuatro subunidades globulares.
+
+## 2. El modelo concertado MWC
+
+Monod, Wyman y Changeux (1965) propusieron que el tetrámero oscila entre dos estados cuaternarios discretos en equilibrio dinámico:
+* Estado **T (Tenso)**: baja afinidad por el $O_2$, estabilizado por puentes salinos intra- e intercatenarios.
+* Estado **R (Relajado)**: alta afinidad por el $O_2$, con rotación de 15 grados del dímero $\\alpha_1\\beta_1$ respecto a $\\alpha_2\\beta_2$.`,
+  },
+  {
+    id: 'art-halting-problem',
+    slug: 'indecidibilidad-algoritmica-turing-halting',
+    title: 'El problema de la parada de Turing y los límites de la verificación formal',
+    subtitle: 'Demostración constructiva mediante diagonalización de por qué ningún analizador estático puede ser completo y correcto a la vez.',
+    excerpt: 'Una explicación directa de la indecidibilidad algorítmica y su impacto en sistemas de seguridad y compiladores modernos.',
+    author: INITIAL_AUTHORS['usr-andres'],
+    areaId: 'area-computacion',
+    area: 'Computación y Sistemas',
+    level: 'intermediate',
+    license: 'CC0 1.0',
+    epistemicStatus: 'fact',
+    epistemicNote: 'Teorema matemático formalmente probado por Alan Turing en 1936.',
+    aiDeclared: false,
+    visibility: 'public',
+    readTimeMinutes: 6,
+    publishedDate: '18 de Octubre, 2026',
+    lastUpdatedDate: '18 de Octubre, 2026',
+    versionNumber: '1.0',
+    citedByCount: 4,
+    citations: [],
+    contentMarkdown: `## Demostración clásica por contradicción
+
+Supongamos que existe un programa total $H(P, I)$ tal que:
+
+$$H(P, I) = \\begin{cases} 1 & \\text{si } P(I) \\text{ termina} \\\\ 0 & \\text{si } P(I) \\text{ diverge} \\end{cases}$$
+
+Podemos construir un programa adversario $D(P)$:
+
+$$\\text{def } D(P): \\quad \\text{if } H(P, P) == 1 \\implies \\text{while true; else } \\text{return 0}$$
+
+Si evaluamos $D(D)$, encontramos una contradicción irreducible: $D(D)$ termina si y solo si $H(D, D) = 0$, lo que implica que $D(D)$ no termina. Por tanto, el analizador general $H$ no puede existir.`,
+  },
+];
+
+export const INITIAL_KNOWLEDGE_GAPS: KnowledgeGap[] = [
+  {
+    id: 'gap-1',
+    title: '¿Puede definirse una medida universal de complejidad libre de la elección del lenguaje de Turing?',
+    areaId: 'area-computacion',
+    area: 'Computación y Sistemas',
+    authorName: 'Andrés Keller',
+    date: '21 de Octubre, 2026',
+    whatIReadFirst: 'Revisé la formulación de complejidad de Kolmogorov $K(s)$, la invariancia del teorema de la máquina universal de Turing y las notas de Chaitin sobre la constante aditiva $O(1)$.',
+    myHypothesis: 'Sospecho que cualquier métrica cuantitativa de complejidad para cadenas finitas depende irremediablemente de un convenio de codificación arbitrario y no puede independizarse ontológicamente del sustrato.',
+    epistemicStatus: 'hypothesis',
+    similarConcepts: [
+      'Complejidad de Kolmogorov',
+      'Teorema de la invariancia',
+      'Longitud mínima de descripción (MDL)',
+    ],
+    status: 'investigating',
+    answers: [
+      {
+        id: 'ans-1',
+        authorName: 'Dra. Clara Méndez',
+        authorRole: 'Investigadora en Filosofía de la Ciencia',
+        isGithubVerified: true,
+        date: '23 de Octubre, 2026',
+        content: 'El teorema de Levin sobre la búsqueda universal sugiere que, si bien la constante aditiva existe, el orden de magnitud asintótico permite clasificar familias de complejidad sin depender del dialecto particular de la máquina.',
+        supportingCitations: [
+          'Levin, L. A. (1973). Universal sequential search problems.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'gap-2',
+    title: '¿Cómo delimitar en la práctica científica si una discrepancia refuta una hipótesis o una condición auxiliar?',
+    areaId: 'area-filosofia',
+    area: 'Filosofía y Epistemología',
+    authorName: 'Mateo Soria',
+    date: '23 de Octubre, 2026',
+    whatIReadFirst: 'Leí la crítica de Imre Lakatos a Popper sobre los "programas de investigación progresivos vs. degenerativos" y el experimento de Michelson-Morley.',
+    myHypothesis: 'Un criterio pragmático es verificar si la modificación auxiliar predice fenómenos nuevos e independientes o si es meramente un parche ad-hoc para salvar la hipótesis principal.',
+    epistemicStatus: 'opinion',
+    similarConcepts: [
+      'Tesis Duhem-Quine',
+      'Hipótesis ad-hoc',
+      'Programas de investigación de Lakatos',
+    ],
+    status: 'unanswered',
+    answers: [],
+  },
+];
+
+export const INITIAL_OPEN_REPOSITORIES: OpenRepositoryItem[] = [
+  {
+    id: 'repo-openstax',
+    name: 'OpenStax (Rice University)',
+    url: 'https://openstax.org',
+    languages: ['Español', 'Inglés'],
+    topics: ['Matemáticas', 'Ciencias', 'General'],
+    description: 'Manuales y libros de texto universitarios revisados por pares académicos bajo licencias libres CC BY.',
+    licenseType: 'CC BY 4.0',
+    institution: 'Rice University',
+    highlightCount: '60+ manuales universitarios completos',
+  },
+  {
+    id: 'repo-gutenberg',
+    name: 'Project Gutenberg',
+    url: 'https://www.gutenberg.org',
+    languages: ['Español', 'Inglés', 'Francés', 'Alemán', 'Portugués', 'Multilingüe'],
+    topics: ['Humanidades', 'General', 'Archivos Históricos'],
+    description: 'El archivo pionero de libros de dominio público en texto digital y formatos EPUB y Kindle.',
+    licenseType: 'Dominio Público',
+    institution: 'Project Gutenberg Literary Archive Foundation',
+    highlightCount: '70,000+ libros libres',
+  },
+  {
+    id: 'repo-libretexts',
+    name: 'LibreTexts Platform',
+    url: 'https://libretexts.org',
+    languages: ['Inglés', 'Español'],
+    topics: ['Ciencias', 'Matemáticas', 'Humanidades'],
+    description: 'Ecosistema de recursos educativos abiertos (OER) para educación superior en química, física, biología y cálculo.',
+    licenseType: 'CC BY-NC-SA / CC BY',
+    institution: 'UC Davis / National Science Foundation',
+    highlightCount: 'Más de 150 bibliotecas especializadas',
+  },
+  {
+    id: 'repo-mit-ocw',
+    name: 'MIT OpenCourseWare',
+    url: 'https://ocw.mit.edu',
+    languages: ['Inglés', 'Multilingüe'],
+    topics: ['Computación', 'Matemáticas', 'Ciencias'],
+    description: 'Materiales docentes completos, notas, exámenes y textos de más de 2.500 cursos oficiales del MIT.',
+    licenseType: 'CC BY-NC-SA 4.0',
+    institution: 'Massachusetts Institute of Technology',
+    highlightCount: '2,500+ cursos completos abiertos',
+  },
+  {
+    id: 'repo-arxiv',
+    name: 'arXiv Open Access Archive',
+    url: 'https://arxiv.org',
+    languages: ['Inglés', 'Multilingüe'],
+    topics: ['Ciencias', 'Matemáticas', 'Computación'],
+    description: 'Servidor de preprints de investigación en física, matemáticas, informática, biología cuantitativa y economía.',
+    licenseType: 'Open Access / Creative Commons',
+    institution: 'Cornell University',
+    highlightCount: '2.4 millones de artículos científicos',
+  },
+  {
+    id: 'repo-archive-org',
+    name: 'Internet Archive & Open Library',
+    url: 'https://archive.org',
+    languages: ['Multilingüe', 'Español', 'Inglés', 'Francés', 'Alemán', 'Portugués'],
+    topics: ['General', 'Archivos Históricos', 'Humanidades'],
+    description: 'Biblioteca digital sin fines de lucro con millones de libros de dominio público, grabaciones históricas y Wayback Machine.',
+    licenseType: 'Dominio Público / Acceso Libre',
+    institution: 'Internet Archive 501(c)(3)',
+    highlightCount: '40+ millones de libros y textos',
+  },
+  {
+    id: 'repo-doaj',
+    name: 'DOAJ (Directory of Open Access Journals)',
+    url: 'https://doaj.org',
+    languages: ['Multilingüe', 'Español', 'Inglés'],
+    topics: ['Ciencias', 'Humanidades', 'General'],
+    description: 'Directorio indexado de revistas científicas internacionales de acceso abierto y rigurosa revisión por pares.',
+    licenseType: 'Open Access CC',
+    institution: 'Infrastructure Services for Open Access (IS4OA)',
+    highlightCount: '20,000+ revistas científicas revisadas',
+  },
+  {
+    id: 'repo-scielo',
+    name: 'SciELO (Scientific Electronic Library Online)',
+    url: 'https://scielo.org',
+    languages: ['Español', 'Portugués', 'Inglés'],
+    topics: ['Ciencias', 'Humanidades'],
+    description: 'Red cooperativa de bibliotecas científicas digitales de Iberoamérica y el Caribe en acceso abierto.',
+    licenseType: 'CC BY 4.0',
+    institution: 'FAPESP / BIREME / CNPq',
+    highlightCount: '1,800+ revistas de América Latina y España',
+  },
+  {
+    id: 'repo-bne',
+    name: 'Biblioteca Digital Hispánica (BNE)',
+    url: 'https://bdh.bne.es',
+    languages: ['Español'],
+    topics: ['Archivos Históricos', 'Humanidades'],
+    description: 'Acceso libre a manuscritos, incunables, grabados, partituras y obras históricas digitalizadas por la Biblioteca Nacional de España.',
+    licenseType: 'Dominio Público',
+    institution: 'Biblioteca Nacional de España',
+    highlightCount: '250,000+ documentos digitalizados',
+  },
+  {
+    id: 'repo-gallica',
+    name: 'Gallica (Bibliothèque nationale de France)',
+    url: 'https://gallica.bnf.fr',
+    languages: ['Francés'],
+    topics: ['Archivos Históricos', 'Humanidades', 'Ciencias'],
+    description: 'La gran biblioteca digital de Francia con obras clásicas del pensamiento, mapas antiguos y literatura en dominio público.',
+    licenseType: 'Dominio Público',
+    institution: 'Bibliothèque nationale de France',
+    highlightCount: '10+ millones de documentos',
+  },
+];
+
+export const INITIAL_BOOKS: FreeBook[] = [
+  {
+    id: 'book-calc-openstax',
+    title: 'Cálculo Volumen 1',
+    author: 'Edwin Herman & Gilbert Strang',
+    language: 'Español',
+    topic: 'Matemáticas',
+    sourcePlatform: 'OpenStax',
+    formats: ['PDF', 'Web'],
+    license: 'CC BY 4.0',
+    downloadUrl: 'https://openstax.org/details/books/c%C3%A1lculo-volumen-1',
+    description: 'Manual riguroso de cálculo diferencial e integral para ciencias e ingeniería con ejercicios resueltos paso a paso.',
+    pagesCount: 680,
+    year: 2021,
+    coverAccent: '#4F46E5',
+  },
+  {
+    id: 'book-descartes-metodo',
+    title: 'Discurso del método',
+    author: 'René Descartes',
+    language: 'Español',
+    topic: 'Filosofía',
+    sourcePlatform: 'Proyecto Gutenberg',
+    formats: ['EPUB', 'PDF', 'Web'],
+    license: 'Dominio Público',
+    downloadUrl: 'https://www.gutenberg.org/ebooks/13846',
+    description: 'Obra fundamental sobre la duda metódica, la búsqueda de la verdad en las ciencias y el razonamiento deductivo.',
+    pagesCount: 96,
+    year: 1637,
+    coverAccent: '#0D9488',
+  },
+  {
+    id: 'book-physics-libretexts',
+    title: 'University Physics I: Mechanics and Waves',
+    author: 'Samuel J. Ling, Jeff Sanny & William Moebs',
+    language: 'Inglés',
+    topic: 'Física',
+    sourcePlatform: 'LibreTexts',
+    formats: ['PDF', 'Web'],
+    license: 'CC BY 4.0',
+    downloadUrl: 'https://phys.libretexts.org/Bookshelves/University_Physics',
+    description: 'Fundamentos de mecánica newtoniana, dinámica, conservación de energía y ondas mecánicas en acceso abierto.',
+    pagesCount: 780,
+    year: 2022,
+    coverAccent: '#D97706',
+  },
+  {
+    id: 'book-sicp-mit',
+    title: 'Structure and Interpretation of Computer Programs (SICP)',
+    author: 'Harold Abelson & Gerald Jay Sussman',
+    language: 'Inglés',
+    topic: 'Computación',
+    sourcePlatform: 'MIT OCW',
+    formats: ['PDF', 'Web', 'EPUB'],
+    license: 'CC BY-SA 4.0',
+    downloadUrl: 'https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/9585/sicp.zip/index.html',
+    description: 'El clásico indiscutible sobre abstracción procesal, estructuras de datos jerárquicas y diseño de lenguajes de programación.',
+    pagesCount: 657,
+    year: 1996,
+    coverAccent: '#7C3AED',
+  },
+  {
+    id: 'book-popper-conjectures',
+    title: 'Conjectures and Refutations: The Growth of Scientific Knowledge',
+    author: 'Karl R. Popper',
+    language: 'Inglés',
+    topic: 'Filosofía',
+    sourcePlatform: 'Internet Archive',
+    formats: ['PDF', 'EPUB'],
+    license: 'Acceso Abierto Académico',
+    downloadUrl: 'https://archive.org/details/conjecturesrefut00popp_0',
+    description: 'Colección de ensayos donde Popper argumenta que el conocimiento científico avanza por conjeturas audaces y refutaciones severas.',
+    pagesCount: 520,
+    year: 1963,
+    coverAccent: '#E11D48',
+  },
+];
+
+export const INITIAL_FLASHCARDS: Flashcard[] = [
+  {
+    id: 'fc-1',
+    articleId: 'art-popper-falsabilidad',
+    topic: 'Epistemología',
+    area: 'Filosofía y Epistemología',
+    question: '¿Por qué la verificación de predicciones no prueba la verdad concluyente de una teoría según Popper?',
+    answer: 'Por la asimetría lógica del modus tollens: confirmar infinitas consecuencias no garantiza la premisa universal (falacia de afirmar el consecuente), mientras que una sola observación contradictoria basta deductivamente para refutarla.',
+    intervalDays: 3,
+    repetitionCount: 1,
+    nextReviewDate: '2026-10-27',
+  },
+  {
+    id: 'fc-2',
+    articleId: 'art-halting-problem',
+    topic: 'Computación teórica',
+    area: 'Computación y Sistemas',
+    question: '¿Qué método fundamental utiliza Turing para demostrar la indecidibilidad del problema de la parada?',
+    answer: 'El método de diagonalización (análogo al de Cantor), construyendo un programa adversario que contradice la predicción del hipotético analizador universal sobre su propia entrada.',
+    intervalDays: 5,
+    repetitionCount: 2,
+    nextReviewDate: '2026-10-28',
+  },
+];
+
+export const INITIAL_THESIS_ITEMS: ThesisAntithesisItem[] = [
+  {
+    id: 'th-1',
+    title: 'Falsabilidad popperiana frente a programas de investigación lakatosianos',
+    area: 'Filosofía y Epistemología',
+    thesisAuthor: 'Dra. Clara Méndez',
+    thesisThesis: 'Una proposición que no formule condiciones experimentales explícitas bajo las cuales deba ser abandonada no pertenece a la ciencia empírica.',
+    thesisArgument: 'Sin la amenaza real de refutación, cualquier sistema teórico puede blindarse ad infinitum inventando entidades ad-hoc no comprobables.',
+    falsifiabilityCondition: 'Demostrar que una disciplina histórica que jamás admitió refutaciones generó predicciones cuantitativas corroboradas que ninguna teoría falsable pudo deducir.',
+    antithesisAuthor: 'Dr. Alejandro Vives',
+    antithesisThesis: 'El falsacionismo ingenuo descarta teorías embrionarias prometedoras antes de que puedan articular sus hipótesis auxiliares.',
+    antithesisArgument: 'La historia real de la física demuestra que Copérnico o Galileo defendieron modelos empíricamente falseados en su época, cuyos aparentes fallos se debían a instrumentos imperfectos.',
+    evidenceLinks: [
+      { title: 'La lógica de la investigación científica (Popper, 1934)', url: 'https://openlibrary.org/works/OL15079237W', relation: 'supports' },
+      { title: 'La metodología de los programas de investigación científica (Lakatos, 1978)', url: 'https://openlibrary.org/works/OL15079238W', relation: 'contradicts' },
+    ],
+  },
+];
+
+export const INITIAL_EXERCISES: ExerciseItem[] = [
+  {
+    id: 'ex-1',
+    articleId: 'art-popper-falsabilidad',
+    topic: 'Lógica proposicional científica',
+    question: 'Si una teoría T predice el fenómeno P, y el experimento arroja no-P, ¿qué regla lógica formal justifica descartar T y qué suposición previa estamos dando por segura?',
+    hint: 'Piensa en las condiciones del instrumental experimental y la regla del Modus Tollens.',
+    reasonedSolution: 'La regla formal es el Modus Tollens: ((T -> P) ^ ~P) -> ~T. La suposición previa implícita es que las hipótesis auxiliares H_aux (calibración del detector, ausencia de interferencias no contempladas) eran correctas, de modo que lo refutado es formalmente la conjunción (T ^ H_aux), tal como señaló Duhem.',
+  },
+  {
+    id: 'ex-2',
+    articleId: 'art-halting-problem',
+    topic: 'Teoría de autómatas',
+    question: '¿Por qué el teorema de Rice es una generalización directa de la indecidibilidad del problema de la parada?',
+    hint: 'Considera qué constituye una propiedad no trivial sobre el lenguaje aceptado por una máquina.',
+    reasonedSolution: 'El teorema de Rice establece que cualquier propiedad semántica no trivial de las funciones computables es indecidible. Se prueba reduciendo el Halting Problem a la comprobación de dicha propiedad, demostrando que ningún algoritmo puede examinar el código de un programa para deducir cualquier comportamiento semántico general en tiempo finito.',
+  },
+];
+
+export const INITIAL_GLOSSARY: GlossaryItem[] = [
+  {
+    id: 'glo-1',
+    term: 'Modus Tollens',
+    definition: 'Regla de inferencia deductiva formal: si una premisa condicional (P implica Q) es verdadera y el consecuente (Q) es falso, entonces el antecedente (P) es necesariamente falso.',
+    area: 'Filosofía y Epistemología',
+    relatedArticleId: 'art-popper-falsabilidad',
+  },
+  {
+    id: 'glo-2',
+    term: 'Tesis Duhem-Quine',
+    definition: 'Postulado epistemológico que señala que es imposible someter a prueba una hipótesis científica aislada, pues siempre va acompañada de supuestos auxiliares.',
+    area: 'Filosofía y Epistemología',
+    relatedArticleId: 'art-popper-falsabilidad',
+  },
+  {
+    id: 'glo-3',
+    term: 'Diagonalización de Cantor/Turing',
+    definition: 'Técnica matemática constructiva para probar que un conjunto no es enumerable o que una función no es computable, creando un objeto que difiere sistemáticamente en la diagonal de cada elemento listado.',
+    area: 'Computación y Sistemas',
+    relatedArticleId: 'art-halting-problem',
+  },
+];
+
+export const INITIAL_CHALLENGES: PersonalChallenge[] = [
+  {
+    id: 'ch-1',
+    title: 'Escribo mi libro sobre epistemología y algoritmos en un año',
+    goal: 'Producir un manuscrito abierto y revisado en Chen que conecte la filosofía de la ciencia con la computación contemporánea.',
+    deadline: 'Octubre 2027',
+    isPublic: true,
+    milestones: [
+      { id: 'm-1', title: 'Índice de capítulos y revisión del marco de Popper y Turing', completed: true, completedAt: '2026-10-15' },
+      { id: 'm-2', title: 'Capítulo 1: La asimetría deductiva y la optimización estocástica', completed: true, completedAt: '2026-10-24' },
+      { id: 'm-3', title: 'Capítulo 2: Límites de la computabilidad y paradoja de la parada', completed: false },
+      { id: 'm-4', title: 'Capítulo 3: Hacia un protocolo abierto de falsación colaborativa', completed: false },
+      { id: 'm-5', title: 'Revisión por pares abierta y exportación libre a PDF y EPUB', completed: false },
+    ],
+  },
+];
+
+export const INITIAL_FORUM_THREADS: ForumThread[] = [
+  {
+    id: 'thread-1',
+    title: 'Diferencia metodológica entre predicción estadística y explicación causal',
+    category: 'Epistemología',
+    author: 'Dra. Clara Méndez',
+    authorRole: 'Investigadora en Filosofía de la Ciencia',
+    date: '25 de Octubre, 2026',
+    content: 'En las aplicaciones contemporáneas de redes neuronales, el error de validación bajo no equivale a una hipótesis científica explicativa. ¿Cómo podemos educar en Chen para que los autores distingan entre calibrar parámetros y formular teorías?',
+    replies: [
+      {
+        id: 'reply-1',
+        author: 'Dr. Miguel Ángel Torres',
+        authorRole: 'Docente de Bioquímica',
+        isGithubVerified: true,
+        date: '25 de Octubre, 2026',
+        content: 'En biología nos ocurre con la predicción de plegamiento de proteínas: predecir la estructura con alta precisión es utilísimo, pero no explica por sí solo el mecanismo biofísico de la trayectoria conformacional termodinámica.',
+      },
+    ],
+  },
+  {
+    id: 'thread-2',
+    title: 'Propuesta: exportación limpia de fuentes Markdown con metadatos para NotebookLM',
+    category: 'Propuestas Chen',
+    author: 'Santiago Morales',
+    authorRole: 'Estudiante de Grado',
+    date: '24 de Octubre, 2026',
+    content: 'Es excelente que la exportación sea un archivo Markdown local sin enviar datos automáticamente a ningún servidor externo.',
+    replies: [],
+  },
+];
+
+export const INITIAL_CLAIMS: ClaimRecord[] = [
+  {
+    id: 'rec-001',
+    code: 'REC-2026-0041',
+    date: '20 de Octubre, 2026',
+    consumerPseudonym: 'Ciudadana M.V.',
+    type: 'sugerencia',
+    isPublic: true,
+    detail: 'Sería muy útil contar con modo de lectura asistida con espaciado amplio y medida corta.',
+    request: 'Añadir modo de lectura asistida accesible.',
+    status: 'atendido',
+    responseDate: '21 de Octubre, 2026',
+    officialReply: 'Atendida e implementada como Lectura Asistida con espaciado optimizado.',
+  },
+  {
+    id: 'rec-002',
+    code: 'REC-2026-0042',
+    date: '24 de Octubre, 2026',
+    consumerPseudonym: 'Investigador J.P.',
+    type: 'queja',
+    isPublic: false,
+    detail: 'Texto protegido por privacidad personal.',
+    request: 'Simplificar el diseño visual y no mostrar datos privados públicamente.',
+    status: 'en_tramite',
+    responseDate: '26 de Octubre, 2026',
+    officialReply: 'En trámite: privacidad reforzada por defecto en el Libro de Reclamaciones.',
+  },
+];
+
+export const INITIAL_MODERATION_LOG: ModerationLogEntry[] = [
+  {
+    id: 'mod-1',
+    date: '22 de Octubre, 2026',
+    action: 'correccion_etiqueta',
+    targetType: 'articulo',
+    targetTitle: 'Propuesta sobre gravedad cuántica sin deducción matemática',
+    ruleViolated: 'Etiqueta epistémica incorrecta (marcada como "Hecho" cuando es una conjetura teórica sin verificación empírica).',
+    rationale: 'Se recalificó la etiqueta a "Hipótesis" preservando íntegro el texto del autor y notificando los motivos.',
+    moderator: 'Dra. Clara Méndez',
+    status: 'firme',
+  },
+  {
+    id: 'mod-2',
+    date: '20 de Octubre, 2026',
+    action: 'aviso',
+    targetType: 'comentario',
+    targetTitle: 'Hilo sobre interpretación de la mecánica cuántica',
+    ruleViolated: 'Argumento ad hominem hacia el revisor.',
+    rationale: 'Aviso formal emitido al usuario solicitando reescribir la objeción centrándose exclusivamente en los datos.',
+    moderator: 'Dr. Alejandro Vives',
+    status: 'resuelta',
+  },
+];
+
+export const DEMO_USERS: UserProfile[] = [
+  {
+    id: 'usr-clara',
+    name: 'Dra. Clara Méndez',
+    username: 'claramendez',
+    email: 'clara.mendez@uautonoma.es',
+    role: 'Investigadora en Filosofía de la Ciencia',
+    bio: 'Investigadora en epistemología de la ciencia y demarcación científica en la Universidad Autónoma. Firme defensora del conocimiento en acceso abierto, la falsabilidad popperiana y la revisión crítica sin algoritmos de popularidad.',
+    avatarInitials: 'CM',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=250&auto=format&fit=crop&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1507842229452-78d10a47214e?w=1200&auto=format&fit=crop&q=80',
+    areas: ['Filosofía y Epistemología', 'Computación y Sistemas'],
+    githubVerified: true,
+    githubUser: 'claramendez-sci',
+    orcidVerified: true,
+    orcidId: '0000-0002-1825-0097',
+    linkedinUrl: 'https://linkedin.com/in/claramendez-demo',
+    personalUrl: 'https://claramendez.org',
+    mastodonUrl: 'https://scholar.social/@claramendez',
+    isDemoUser: true,
+    donationsPublic: true,
+    donationsMessage: 'Las contribuciones voluntarias financian la adquisición y escaneo de monografías epistemológicas de principios del siglo XX para su liberación bajo Dominio Público (CC0).',
+    donationsGoal: 'Digitalización de 3 obras clásicas de Moritz Schlick y Hans Reichenbach.',
+    donationLinks: {
+      kofi: 'https://ko-fi.com/claramendez',
+      liberapay: 'https://liberapay.com/claramendez',
+      paypal: 'https://paypal.me/claramendez',
+      githubSponsors: 'https://github.com/sponsors/claramendez-sci',
+    },
+    supportersList: [
+      { id: 'sup-1', name: 'Andrés Keller', date: '21 de Octubre, 2026', note: 'Gracias por tu rigor en el debate sobre Popper y la inducción.', amount: '15 €' },
+      { id: 'sup-2', name: 'Mecenas Anónimo', date: '18 de Octubre, 2026', note: 'Para la digitalización de fuentes históricas en CC0.', amount: '25 €' },
+      { id: 'sup-3', name: 'Lucía Santos', date: '14 de Octubre, 2026', note: 'Excelente tutorial sobre modus tollens para estudiantes.', amount: '5 €' },
+    ],
+    communityStats: {
+      citationsGivenCount: 14,
+      changedMindCount: 3,
+      gapsAnsweredCount: 5,
+      articlesPublishedCount: 4,
+      threadsCreatedCount: 3,
+      reviewsDoneCount: 6,
+    },
+  },
+  {
+    id: 'usr-andres',
+    name: 'Andrés Keller',
+    username: 'andreskeller',
+    email: 'andres@keller.dev',
+    role: 'Ingeniero de Software y Matemático',
+    bio: 'Ingeniero de sistemas distribuidos y apasionado de la teoría de tipos, límites de computabilidad y lógica formal. Contribuyente al software libre AGPL.',
+    avatarInitials: 'AK',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&auto=format&fit=crop&q=80',
+    areas: ['Computación y Sistemas', 'Matemáticas'],
+    githubVerified: true,
+    githubUser: 'andreskeller-dev',
+    orcidVerified: false,
+    personalUrl: 'https://keller.dev',
+    isDemoUser: true,
+    donationsPublic: true,
+    donationsMessage: 'Apoyo voluntario para mantener servidores de prueba de formalización en Lean y Coq.',
+    donationLinks: {
+      liberapay: 'https://liberapay.com/andreskeller',
+      githubSponsors: 'https://github.com/sponsors/andreskeller-dev',
+    },
+    supportersList: [
+      { id: 'sup-4', name: 'Dra. Clara Méndez', date: '19 de Octubre, 2026', note: 'Por la formulación formal del problema de la parada en Chen.', amount: '20 €' },
+    ],
+    communityStats: {
+      citationsGivenCount: 22,
+      changedMindCount: 2,
+      gapsAnsweredCount: 7,
+      articlesPublishedCount: 3,
+      threadsCreatedCount: 5,
+      reviewsDoneCount: 4,
+    },
+  },
+  {
+    id: 'usr-estudiante',
+    name: 'Lucía Santos',
+    username: 'luciasantos',
+    email: 'lucia.santos@estudiantes.org',
+    role: 'Estudiante de Grado en Física y Filosofía',
+    bio: 'Estudiando por mi cuenta en Chen. Uso las rutas de aprendizaje y las flashcards para afianzar conceptos antes de escribir mis primeros apuntes abiertos.',
+    avatarInitials: 'LS',
+    avatarUrl: '',
+    bannerUrl: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&auto=format&fit=crop&q=80',
+    areas: ['Filosofía y Epistemología', 'Física y Cosmología'],
+    githubVerified: false,
+    orcidVerified: false,
+    personalUrl: '',
+    isDemoUser: true,
+    donationsPublic: false,
+    donationLinks: {},
+    supportersList: [],
+    communityStats: {
+      citationsGivenCount: 5,
+      changedMindCount: 1,
+      gapsAnsweredCount: 2,
+      articlesPublishedCount: 1,
+      threadsCreatedCount: 2,
+      reviewsDoneCount: 1,
+    },
+  },
+];
+
+export const PROHIBITED_TOPICS = [
+  {
+    topic: 'Ataques personales y descalificación',
+    description: 'Críticas dirigidas a la persona, sus títulos o afiliaciones en lugar de evaluar el argumento, la evidencia o la inferencia lógica.',
+    sanction: 'Aviso formal → En caso de reincidencia, suspensión temporal del permiso de publicación.',
+  },
+  {
+    topic: 'Plagio y atribución falsa',
+    description: 'Copiar textos, hipótesis o traducciones ajenas sin cita explícita o apropiándose de la autoría original.',
+    sanction: 'Retirada inmediata del contenido y registro público en el panel de moderación.',
+  },
+  {
+    topic: 'Publicidad encubierta y enlaces comerciales',
+    description: 'Insertar enlaces de afiliados, promociones pagadas, SEO artificial o reseñas comerciales camufladas.',
+    sanction: 'Retirada del contenido y suspensión permanente.',
+  },
+  {
+    topic: 'Desinformación deliberada o negacionismo de consensos empíricos cerrados',
+    description: 'Postular enunciados como "Hechos comprobados" cuando contradicen datos reproducibles y verificados, sin aportar evidencia experimental contrastada.',
+    sanction: 'Recalificación obligatoria de etiqueta a Hipótesis u Opinión; en caso de falsificación de datos, retirada.',
+  },
+  {
+    topic: 'Contenido ilícito, violento o que incite al odio',
+    description: 'Cualquier expresión contraria a los derechos fundamentales, acoso o incitación a la violencia.',
+    sanction: 'Retirada cautelar instantánea y reporte a las autoridades competentes.',
+  },
+];
