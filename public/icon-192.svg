@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="36" fill="#0f766e"/>
+  <!-- Open Book & Knowledge Line Logo -->
+  <path d="M44 60 C58 54, 82 54, 96 66 C110 54, 134 54, 148 60 V136 C134 130, 110 130, 96 142 C82 130, 58 130, 44 136 Z" fill="none" stroke="#f0fdfa" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M96 66 V142" stroke="#f0fdfa" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="96" cy="46" r="6" fill="#2dd4bf"/>
+  <line x1="96" y1="52" x2="96" y2="60" stroke="#2dd4bf" stroke-width="4" stroke-linecap="round"/>
+</svg>

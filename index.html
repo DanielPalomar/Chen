@@ -4,18 +4,136 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chen — Conocimiento Libre</title>
-    <meta name="description" content="Plataforma de conocimiento abierto, citas argumentativas, huecos del saber y estudio personal sin algoritmos de engagement." />
+    <meta name="description" content="Plataforma de conocimiento abierto, citas argumentativas, huecos del saber y estudio personal sin algoritmos de engagement ni rastreo." />
     <meta property="og:title" content="Chen — Conocimiento Libre" />
-    <meta property="og:description" content="Plataforma de conocimiento abierto, citas argumentativas, huecos del saber y estudio personal sin algoritmos de engagement." />
+    <meta property="og:description" content="Plataforma de conocimiento abierto, citas argumentativas, huecos del saber y estudio personal sin algoritmos de engagement ni rastreo." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Cero conexiones externas: Cero Google Fonts, Cero CDN de terceros, Cero rastreo -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
+
+    <!-- Schema.org JSON-LD para SEO y accesibilidad de motores de búsqueda -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Chen — Conocimiento Libre",
+      "description": "Red de conocimiento abierto donde las ideas se conectan por citas semánticas y evidencia deductiva, sin algoritmos de popularidad ni publicidad.",
+      "url": "https://chen-conocimiento-libre.org",
+      "inLanguage": "es",
+      "license": "https://creativecommons.org/licenses/by-sa/4.0/"
+    }
+    </script>
   </head>
   <body class="antialiased selection:bg-teal-500/20 selection:text-teal-900">
-    <div id="root"></div>
+    <!-- Enlace de salto de accesibilidad (WCAG 2.1 AAA) -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:p-3 focus:bg-teal-900 focus:text-white focus:rounded focus:outline-none">
+      Saltar al contenido principal
+    </a>
+
+    <!-- Contenido semántico inicial SSR/SSG fallback para lectores de pantalla y navegadores sin JS -->
+    <div id="root">
+      <header role="banner" class="border-b border-stone-200 bg-white/95 px-4 py-4 text-stone-900">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="font-serif text-xl font-bold tracking-tight text-teal-800">Chen</span>
+            <span class="text-xs font-mono uppercase text-stone-500">· Conocimiento Libre</span>
+          </div>
+          <nav role="navigation" aria-label="Navegación principal">
+            <ul class="flex items-center gap-4 text-xs font-medium text-stone-700">
+              <li><a href="#articulos" class="hover:underline">Artículos</a></li>
+              <li><a href="#areas" class="hover:underline">Áreas del Saber</a></li>
+              <li><a href="#manifiesto" class="hover:underline">Manifiesto</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <main id="main-content" role="main" class="max-w-4xl mx-auto px-4 py-8 space-y-12">
+        <noscript>
+          <div role="alert" class="p-4 rounded-lg bg-amber-50 border border-amber-300 text-amber-950 text-xs">
+            <strong>Modo sin JavaScript activo:</strong> Chen está diseñado para ser 100% accesible y legible con navegación estática pura, sin rastreo y con mínimo consumo de ancho de banda.
+          </div>
+        </noscript>
+
+        <!-- Hero Section Semántico -->
+        <section aria-labelledby="hero-title" class="space-y-4 pb-8 border-b border-stone-200">
+          <div class="text-xs font-mono font-semibold uppercase tracking-wider text-teal-800">
+            Protocolo de Argumentación Abierta · Sin Algoritmos de Popularidad
+          </div>
+          <h1 id="hero-title" class="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 leading-tight">
+            Conocimiento libre, articulado con argumentos y citas con función.
+          </h1>
+          <p class="font-serif text-base text-stone-700 leading-relaxed max-w-2xl">
+            En Chen las afirmaciones no compiten por aplausos superficiales. Cada tesis se conecta directamente con la evidencia mediante tres relaciones lógicas: 
+            <strong class="text-emerald-800">apoya</strong>, 
+            <strong class="text-rose-800">contradice</strong> y 
+            <strong class="text-teal-800">amplía</strong>.
+          </p>
+        </section>
+
+        <!-- Mockup Visual de Citas Semánticas en el Hero -->
+        <section aria-labelledby="demo-title" class="p-6 rounded-xl border border-stone-300 bg-stone-50/50 space-y-6">
+          <div class="flex items-center justify-between pb-3 border-b border-stone-200">
+            <h2 id="demo-title" class="text-xs font-mono font-bold uppercase tracking-wider text-stone-600">
+              Cómo funciona Chen en 5 segundos: Anatomía de una Cita con Función
+            </h2>
+            <span class="px-2 py-0.5 rounded font-mono text-[11px] font-semibold bg-amber-100 text-amber-900 border border-amber-300">
+              [ Estado Epistémico: Hipótesis ]
+            </span>
+          </div>
+
+          <article class="p-4 rounded-lg bg-white border border-stone-200 space-y-3 shadow-xs">
+            <header class="flex items-center justify-between text-xs text-stone-500">
+              <span class="font-semibold text-stone-800">Dra. Elena Vasconcelos · Epistemología</span>
+              <time datetime="2026-10-28">28 Octubre 2026</time>
+            </header>
+            <p class="font-serif text-sm text-stone-900 leading-relaxed">
+              «Ninguna cantidad de cisnes blancos observados puede justificar deductivamente la conclusión de que todos los cisnes son blancos; la observación de un único cisne negro basta para refutarla de forma concluyente.»
+            </p>
+          </article>
+
+          <!-- Conexiones Lógicas de Citas -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3.5 rounded-lg border-l-4 border-emerald-600 bg-emerald-50/70 border border-emerald-200 space-y-1.5 text-xs text-stone-800">
+              <div class="flex items-center justify-between font-mono font-bold text-emerald-900">
+                <span>[ + Apoya ]</span>
+                <span class="text-[10px] text-emerald-700 font-normal">Cita deductiva</span>
+              </div>
+              <p class="font-serif italic text-stone-900">
+                «La asimetría lógica entre verificabilidad y refutabilidad: las teorías nunca son verificables, solo corroboradas provisionalmente.»
+              </p>
+              <span class="block text-[11px] text-stone-600 font-medium">Karl Popper (1934) — Logik der Forschung</span>
+            </div>
+
+            <div class="p-3.5 rounded-lg border-l-4 border-rose-600 bg-rose-50/70 border border-rose-200 space-y-1.5 text-xs text-stone-800">
+              <div class="flex items-center justify-between font-mono font-bold text-rose-900">
+                <span>[ - Contradice / Objeción ]</span>
+                <span class="text-[10px] text-rose-700 font-normal">Tesis Holista</span>
+              </div>
+              <p class="font-serif italic text-stone-900">
+                «Una hipótesis nunca se somete a contraste de forma aislada; siempre se refuta un sistema entero de supuestos auxiliares.»
+              </p>
+              <span class="block text-[11px] text-stone-600 font-medium">Pierre Duhem & W.V.O. Quine (1951)</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Script de aplicación React SPA -->
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
-

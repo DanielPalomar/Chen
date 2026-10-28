@@ -1,154 +1,50 @@
-export type EpistemicStatus = 'fact' | 'hypothesis' | 'opinion' | 'ai-generated';
+export type EpistemicStatus = 'fact' | 'hypothesis' | 'opinion';
 export type CitationRelation = 'supports' | 'contradicts' | 'extends';
-export type ContentLevel = 'intro' | 'intermediate' | 'advanced';
-export type OpenLicense =
-  | 'CC BY 4.0'
-  | 'CC BY-SA 4.0'
-  | 'CC0 1.0'
-  | 'CC BY-NC 4.0'
-  | 'CC BY-ND 4.0';
-export const CLOSED_LICENSES: { id: OpenLicense; name: string; description: string }[] = [
-  { id: 'CC BY 4.0', name: 'CC BY 4.0', description: 'Atribución completa con libre adaptación.' },
-  { id: 'CC BY-SA 4.0', name: 'CC BY-SA 4.0', description: 'Atribución y compartir igual (Copyleft).' },
-  { id: 'CC0 1.0', name: 'CC0 1.0', description: 'Dominio Público universal.' },
-  { id: 'CC BY-NC 4.0', name: 'CC BY-NC 4.0', description: 'Atribución no comercial.' },
-  { id: 'CC BY-ND 4.0', name: 'CC BY-ND 4.0', description: 'Atribución sin obras derivadas.' },
-];
-export interface EpistemicMedal {
-  id: string;
-  name: string;
-  shortName: string;
-  category: 'epistemology' | 'rigor' | 'open_knowledge' | 'dialectic' | 'verification' | 'community';
-  level: 'bronze' | 'silver' | 'gold' | 'laurel';
-  icon: string;
-  description: string;
-  criteria: string;
-  unlocked: boolean;
-  featured?: boolean;
-  earnedDate?: string;
-  evidenceText?: string;
-  evidenceLink?: string;
-  progressCurrent?: number;
-  progressTarget?: number;
-  verificationHash?: string;
-}
-
-export interface SupporterRecord {
-  id: string;
-  name: string;
-  date: string;
-  note: string;
-  amount?: string;
-}
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-  role: string;
-  bio?: string;
-  avatarUrl?: string;
-  avatarInitials: string;
-  bannerUrl?: string;
-  areas?: string[];
-  githubVerified: boolean;
-  githubUser?: string;
-  orcidVerified?: boolean;
-  orcidId?: string;
-  linkedinUrl?: string;
-  linkedinVerified?: boolean;
-  personalUrl?: string;
-  mastodonUrl?: string;
-  otherWebsites?: { label: string; url: string }[];
-  isDemoUser?: boolean;
-  
-  // External direct donation configuration
-  donationLinks?: {
-    kofi?: string;
-    liberapay?: string;
-    paypal?: string;
-    githubSponsors?: string;
-    cryptoAddress?: string;
-  };
-  donationsPublic?: boolean;
-  donationsMessage?: string;
-  donationsGoal?: string;
-  supportersList?: SupporterRecord[];
-
-  // Epistemic community contributions
-  communityStats?: {
-    citationsGivenCount: number;
-    changedMindCount: number;
-    gapsAnsweredCount: number;
-    articlesPublishedCount: number;
-    threadsCreatedCount: number;
-    reviewsDoneCount: number;
-  };
-
-  // Epistemic badges & medals
-  medals?: EpistemicMedal[];
-}
+export type OpenLicense = 'CC BY 4.0' | 'CC BY-SA 4.0' | 'CC0 1.0';
 
 export interface Author {
   id: string;
   name: string;
-  bio: string;
+  handle: string;
+  email: string;
   role: string;
-  areas: string[];
-  githubUser?: string;      // Verified via OAuth (Green verified chip)
-  orcidId?: string;         // Verified via OAuth for researchers
-  linkedinUrl?: string;     // Explicitly marked "Not verified"
-  personalUrl?: string;     // Explicitly marked "Not verified"
-  kofiOrLiberapay?: string; // Direct external support outside platform
-  changedMindCount: number; // "I changed my mind" public corrections counter
-  citationsReceivedCount: number;
-  learningPathsCompleted: number;
-  reputationByArea?: Record<string, number>;
-  medals?: EpistemicMedal[];
+  githubUser?: string;
+  orcidId?: string;
+  avatarUrl?: string;
+  isErased?: boolean;
+  erasedAt?: string;
+  anonIdentifier?: string;
 }
 
 export interface Citation {
   id: string;
-  targetArticleId?: string;
+  sourceArticleId: string;
+  sourceArticleSlug: string;
+  sourceArticleTitle: string;
+  sourceVersionId: string;
+  sourceVersionHash: string;
+  sourceAuthorName: string;
+  sourceAuthorHandle: string;
+  targetArticleId: string;
+  targetArticleSlug: string;
   targetArticleTitle: string;
-  targetAuthor: string;
+  targetVersionId: string;
+  targetVersionHash: string;
+  targetAuthorName: string;
+  quotedSnippet: string;
   relation: CitationRelation;
-  quoteText: string;
-  explanation: string;
-  externalUrl?: string;
-  archiveUrl?: string;     // Internet Archive snapshot status
-  linkStatus?: 'ok' | 'archived' | 'checking';
+  reasoning: string;
+  createdAt: string;
 }
 
-export interface VideoChapter {
-  time: string;
-  seconds: number;
-  title: string;
-}
-
-export interface VideoEmbed {
-  title: string;
-  embedUrl: string;
-  provider: 'youtube' | 'peertube';
-  chapters: VideoChapter[];
-  transcriptExcerpt: string;
-}
-
-export interface ContentVersion {
+export interface ArticleVersion {
   id: string;
   versionNumber: string;
+  contentHash: string;
   date: string;
   authorName: string;
   reason: string;
-  diffSummary?: string;
-}
-
-export interface CorrectionNotice {
-  date: string;
-  detail: string;
-  previousStance: string;
-  newStance: string;
+  contentMarkdown: string;
 }
 
 export interface Article {
@@ -156,355 +52,31 @@ export interface Article {
   slug: string;
   title: string;
   subtitle: string;
-  excerpt: string;
-  contentMarkdown: string;
   author: Author;
-  areaId: string;
-  area: string;
-  level: ContentLevel;
-  prerequisites?: { id: string; title: string }[];
   license: OpenLicense;
   epistemicStatus: EpistemicStatus;
-  epistemicNote: string;
-  aiDeclared: boolean;
-  visibility: 'public' | 'unlisted' | 'private';
+  epistemicNote?: string;
+  currentVersionNumber: string;
+  currentVersionHash: string;
+  versions: ArticleVersion[];
+  contentMarkdown: string;
   readTimeMinutes: number;
   publishedDate: string;
   lastUpdatedDate: string;
-  versionNumber: string;
-  versions?: ContentVersion[];
-  corrections?: CorrectionNotice[];
-  citations: Citation[];
-  citedByCount?: number;
-  videoEmbed?: VideoEmbed;
-  discussionsCount?: number;
+  citationsOutbound: Citation[];
+  citedByInbound: Citation[];
 }
 
-export interface KnowledgeArea {
+export interface ModerationAuditLog {
   id: string;
-  slug: string;
-  name: string;
-  description: string;
-  iconName: string;
-  moderators: {
-    name: string;
-    role: string;
-    githubUser?: string;
-  }[];
-  articleCount: number;
-  gapCount: number;
-}
-
-export interface KnowledgeGapAnswer {
-  id: string;
-  authorName: string;
-  authorRole: string;
-  isGithubVerified?: boolean;
+  incidentHash: string;
+  targetArticleId: string;
+  targetArticleTitle: string;
+  targetVersionHash: string;
+  reporterAnonHash: string;
+  violationType: 'plagiarism' | 'hate_speech' | 'spam' | 'misattribution';
+  actionTaken: 'version_unlisted' | 'metadata_redacted' | 'dismissed';
+  moderatorRole: string;
   date: string;
-  content: string;
-  supportingCitations: string[];
-}
-
-export interface KnowledgeGap {
-  id: string;
-  title: string;
-  areaId: string;
-  area: string;
-  authorName: string;
-  date: string;
-  whatIReadFirst: string;
-  myHypothesis: string;
-  epistemicStatus: EpistemicStatus;
-  answers: KnowledgeGapAnswer[];
-  similarConcepts: string[];
-  status: 'unanswered' | 'investigating' | 'answered';
-}
-
-export interface Flashcard {
-  id: string;
-  articleId?: string;
-  topic: string;
-  area: string;
-  question: string;
-  answer: string;
-  intervalDays: number;
-  repetitionCount: number;
-  nextReviewDate: string;
-}
-
-export interface ForumReply {
-  id: string;
-  author: string;
-  authorRole: string;
-  isGithubVerified?: boolean;
-  date: string;
-  content: string;
-}
-
-export interface ForumThread {
-  id: string;
-  title: string;
-  category: 'Epistemología' | 'Ciencias' | 'Computación' | 'Debate Abierto' | 'Propuestas Chen';
-  author: string;
-  authorRole: string;
-  date: string;
-  content: string;
-  replies: ForumReply[];
-}
-
-export interface ClaimRecord {
-  id: string;
-  code: string; // e.g. "REC-2026-0043"
-  date: string;
-  consumerPseudonym: string; // Anonymized for public privacy (e.g. "Ciudadana M.V.")
-  type: 'reclamo' | 'queja' | 'sugerencia';
-  isPublic: boolean;         // Only shown publicly if user expressly ticked "make this public"
-  detail: string;
-  request: string;
-  status: 'recibido' | 'en_tramite' | 'atendido';
-  responseDate?: string;
-  officialReply?: string;
-}
-
-export interface ModerationLogEntry {
-  id: string;
-  date: string;
-  action: 'retirada' | 'aviso' | 'correccion_etiqueta' | 'suspension';
-  targetType: 'articulo' | 'comentario' | 'cuenta';
-  targetTitle: string;
-  ruleViolated: string;
-  rationale: string;
-  moderator: string;
-  status: 'firme' | 'en_apelacion' | 'resuelta';
-}
-
-export interface ReportItem {
-  id: string;
-  targetId: string;
-  targetType: 'articulo' | 'comentario' | 'gap' | 'publicacion' | 'hilo';
-  targetTitle: string;
-  reason: 'plagio' | 'falta_citas' | 'ataque_personal' | 'linea_roja' | 'etiqueta_incorrecta' | 'spam' | 'desinformacion' | 'otro';
-  detail: string;
-  reporterPseudonym: string;
-  date: string;
-  status: 'new' | 'in_review' | 'resolved';
-}
-
-export interface SavedSnippet {
-  id: string;
-  articleId: string;
-  articleTitle: string;
-  articleAuthor: string;
-  selectedText: string;
-  citationId?: string; // If saved from a specific citation
-  citationRelation?: CitationRelation;
-  citationTarget?: string;
-  note?: string;
-  savedDate: string;
-  paragraphIndex?: number;
-}
-
-export interface FreeBook {
-  id: string;
-  title: string;
-  author: string;
-  language: 'Español' | 'Inglés' | 'Francés' | 'Alemán' | 'Portugués';
-  topic:
-    | 'Matemáticas'
-    | 'Física'
-    | 'Computación'
-    | 'Filosofía'
-    | 'Biología'
-    | 'Ciencias Sociales'
-    | 'Literatura'
-    | 'Sistemas'
-    | 'Economía'
-    | string;
-  sourcePlatform:
-    | 'OpenStax'
-    | 'Proyecto Gutenberg'
-    | 'LibreTexts'
-    | 'MIT OCW'
-    | 'Internet Archive'
-    | 'arXiv'
-    | string;
-  formats: ('PDF' | 'EPUB' | 'Web')[];
-  license: string;
-  downloadUrl: string;
-  description: string;
-  pagesCount: number;
-  year: number;
-  coverAccent: string;
-}
-
-export interface OpenRepositoryItem {
-  id: string;
-  name: string;
-  url: string;
-  languages: ('Español' | 'Inglés' | 'Francés' | 'Alemán' | 'Portugués' | 'Multilingüe')[];
-  topics: ('General' | 'Ciencias' | 'Humanidades' | 'Matemáticas' | 'Computación' | 'Archivos Históricos')[];
-  description: string;
-  licenseType: string;
-  institution: string;
-  highlightCount: string;
-}
-
-export interface Milestone {
-  id: string;
-  title: string;
-  completed: boolean;
-  completedAt?: string;
-}
-
-export interface PersonalChallenge {
-  id: string;
-  title: string;
-  goal: string;
-  deadline: string;
-  isPublic: boolean;
-  milestones: Milestone[];
-  tier?: 'personal' | 'grupal' | 'comunitario';
-  participantsCount?: number;
-  maxParticipants?: number;
-  area?: string;
-  communityDeliverable?: string;
-}
-
-export interface InlineComment {
-  id: string;
-  author: string;
-  authorRole: string;
-  isGithubVerified?: boolean;
-  date: string;
-  content: string;
-}
-
-export interface InlineDiscussion {
-  id: string;
-  articleId: string;
-  version: string;
-  selectedText: string;
-  anchorParagraph: number;
-  comments: InlineComment[];
-}
-
-export interface ThesisAntithesisItem {
-  id: string;
-  title: string;
-  area: string;
-  thesisAuthor: string;
-  thesisThesis: string;
-  thesisArgument: string;
-  falsifiabilityCondition: string; // "What evidence would make me change my mind?"
-  antithesisAuthor: string;
-  antithesisThesis: string;
-  antithesisArgument: string;
-  evidenceLinks: { title: string; url: string; relation: CitationRelation }[];
-}
-
-export interface ExerciseItem {
-  id: string;
-  articleId?: string;
-  topic: string;
-  question: string;
-  reasonedSolution: string;
-  hint?: string;
-}
-
-export interface GlossaryItem {
-  id: string;
-  term: string;
-  definition: string;
-  area: string;
-  relatedArticleId?: string;
-}
-
-export interface StudyPathStepResource {
-  id: string;
-  title: string;
-  type: 'internal_article' | 'internal_book' | 'external_doc' | 'external_course' | 'external_paper';
-  urlOrSlug: string;
-  description?: string;
-  isFree: boolean;
-}
-
-export interface StudyPathStep {
-  id: string;
-  order: number;
-  title: string;
-  description: string;
-  estimatedHours: number;
-  resources: StudyPathStepResource[];
-  completed?: boolean;
-}
-
-export interface StudyPathComment {
-  id: string;
-  authorName: string;
-  authorRole: string;
-  isGithubVerified?: boolean;
-  date: string;
-  content: string;
-  suggestedResource?: string;
-}
-
-export interface CommunityStudyPath {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  authorName: string;
-  authorRole: string;
-  isOfficial: boolean;
-  areaId: string;
-  area: string;
-  level: ContentLevel;
-  estimatedWeeks: number;
-  steps: StudyPathStep[];
-  comments: StudyPathComment[];
-  clonesCount: number;
-  forkedFromId?: string;
-  forkedFromTitle?: string;
-  lastUpdated: string;
-  isCustomFork?: boolean;
-}
-
-export interface UserPreferences {
-  language: 'es' | 'en';
-  theme: 'light' | 'sepia' | 'dark';
-  fontFamily: 'serif' | 'sans' | 'mono' | 'literata' | 'merriweather' | 'atkinson' | 'plex';
-  assistedReading: boolean;
-  lineFocus: boolean;
-  ultraLightMode: boolean;
-  visualMode?: boolean;
-  textSize: 'standard' | 'large';
-  defaultLicense: OpenLicense;
-  demoMode: boolean;
-  activeView:
-    | 'home'
-    | 'article'
-    | 'areas'
-    | 'area_detail'
-    | 'knowledge_map'
-    | 'books'
-    | 'repositories'
-    | 'gaps'
-    | 'forum'
-    | 'study_path'
-    | 'challenges'
-    | 'thesis'
-    | 'claims'
-    | 'editor'
-    | 'profile'
-    | 'my_profile'
-    | 'moderation'
-    | 'reputation'
-    | 'red_lines'
-    | 'sustainability'
-    | 'settings'
-    | 'manifesto'
-    | 'search';
-  selectedArticleId: string | null;
-  selectedAuthorId: string | null;
-  selectedAreaId: string | null;
+  publicRationale: string;
 }

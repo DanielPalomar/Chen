@@ -1,442 +1,210 @@
-import {
-  Article,
-  KnowledgeGap,
-  Flashcard,
-  UserPreferences,
-  UserProfile,
-  ForumThread,
-  ClaimRecord,
-  FreeBook,
-  PersonalChallenge,
-  ThesisAntithesisItem,
-  ExerciseItem,
-  GlossaryItem,
-  ModerationLogEntry,
-  ReportItem,
-  CommunityStudyPath,
-  SavedSnippet,
-} from '../types';
-import {
-  INITIAL_ARTICLES,
-  INITIAL_KNOWLEDGE_GAPS,
-  INITIAL_FLASHCARDS,
-  INITIAL_FORUM_THREADS,
-  INITIAL_CLAIMS,
-  INITIAL_CHALLENGES,
-  INITIAL_THESIS_ITEMS,
-  INITIAL_EXERCISES,
-  INITIAL_GLOSSARY,
-  INITIAL_MODERATION_LOG,
-  INITIAL_BOOKS,
-  INITIAL_STUDY_PATHS,
-  DEMO_USERS,
-} from '../data/initialData';
+import { Article, Author, ModerationAuditLog, Citation } from '../types';
+import { INITIAL_ARTICLES, INITIAL_AUTHORS, INITIAL_AUDIT_LOGS } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  ARTICLES: 'chen_articles_v3',
-  GAPS: 'chen_gaps_v3',
-  FLASHCARDS: 'chen_flashcards_v3',
-  FORUM: 'chen_forum_v3',
-  CLAIMS: 'chen_claims_v3',
-  BOOKS: 'chen_books_v3',
-  CHALLENGES: 'chen_challenges_v3',
-  THESIS: 'chen_thesis_v3',
-  EXERCISES: 'chen_exercises_v3',
-  GLOSSARY: 'chen_glossary_v3',
-  MODERATION: 'chen_moderation_v3',
-  REPORTS: 'chen_reports_v3',
-  STUDY_PATHS: 'chen_study_paths_v3',
-  SNIPPETS: 'chen_snippets_v3',
-  USER: 'chen_user_session_v3',
-  PREFERENCES: 'chen_prefs_v3',
+  ARTICLES: 'chen_v1_articles',
+  AUTHORS: 'chen_v1_authors',
+  AUDIT_LOGS: 'chen_v1_audit_logs',
+  CURRENT_USER_ID: 'chen_v1_current_user_id',
+  THEME: 'chen_theme_mode',
 };
 
-const INITIAL_SNIPPETS: SavedSnippet[] = [
-  {
-    id: 'snip-1',
-    articleId: 'la-asimetria-deductiva-del-falsacionismo-popperiano',
-    articleTitle: 'La asimetría deductiva del falsacionismo popperiano',
-    articleAuthor: 'Dra. Elena Vasconcelos',
-    selectedText: 'Ninguna cantidad de observaciones de cisnes blancos puede justificar la inferencia de que todos los cisnes son blancos; sin embargo, la observación de un único cisne negro basta para refutarla concluyentemente.',
-    citationId: 'cit-1',
-    citationRelation: 'supports',
-    citationTarget: 'Logik der Forschung (1934)',
-    note: 'Principio fundamental de la asimetría lógica entre verificación y falsación.',
-    savedDate: '24 de octubre, 2026',
-    paragraphIndex: 2,
-  },
-  {
-    id: 'snip-2',
-    articleId: 'el-problema-de-la-detencion-de-turing-y-los-limites-del-computo',
-    articleTitle: 'El problema de la detención de Turing y los límites intrínsecos del cómputo',
-    articleAuthor: 'Prof. Carlos Mendoza',
-    selectedText: 'No existe un algoritmo general que pueda decidir, para todo programa y toda entrada posible, si dicho programa terminará o continuará ejecutándose indefinidamente.',
-    citationId: 'cit-1',
-    citationRelation: 'extends',
-    citationTarget: 'On Computable Numbers (1936)',
-    note: 'Incompletitud algorítmica fundamental.',
-    savedDate: '26 de octubre, 2026',
-    paragraphIndex: 3,
-  },
-];
-
-// Snippets (Saved Article Excerpts & Citations)
-export const getStoredSnippets = (): SavedSnippet[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.SNIPPETS);
-    if (!raw) return INITIAL_SNIPPETS;
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : INITIAL_SNIPPETS;
-  } catch (e) {
-    return INITIAL_SNIPPETS;
+// Deterministic fast SHA-256 simulation in JS for client-side hashing without external deps
+export async function computeSha256(text: string): Promise<string> {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
-};
-
-export const saveStoredSnippets = (snippets: SavedSnippet[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.SNIPPETS, JSON.stringify(snippets));
-  } catch (e) {
-    console.error('Error saving snippets:', e);
+  // Fallback hash
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    const char = text.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
   }
-};
+  return Math.abs(hash).toString(16).padStart(64, 'a');
+}
 
-// Study Paths (Curated & Community)
-export const getStoredStudyPaths = (): CommunityStudyPath[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.STUDY_PATHS);
-    if (!raw) return INITIAL_STUDY_PATHS;
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_STUDY_PATHS;
-  } catch (e) {
-    return INITIAL_STUDY_PATHS;
-  }
-};
-
-export const saveStoredStudyPaths = (paths: CommunityStudyPath[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.STUDY_PATHS, JSON.stringify(paths));
-  } catch (e) {
-    console.error('Error saving study paths:', e);
-  }
-};
-
-// User Profile & Session
-export const getStoredUser = (): UserProfile | null => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.USER);
-    if (!raw) return DEMO_USERS[0];
-    return JSON.parse(raw);
-  } catch (e) {
-    return DEMO_USERS[0];
-  }
-};
-
-export const saveStoredUser = (user: UserProfile | null) => {
-  try {
-    if (!user) {
-      localStorage.removeItem(STORAGE_KEYS.USER);
-    } else {
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-    }
-  } catch (e) {
-    console.error('Error saving user session:', e);
-  }
-};
-
-// Articles
-export const getStoredArticles = (): Article[] => {
+export function getStoredArticles(): Article[] {
+  if (typeof window === 'undefined') return INITIAL_ARTICLES;
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.ARTICLES);
-    if (!raw) return INITIAL_ARTICLES;
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(INITIAL_ARTICLES));
+      return INITIAL_ARTICLES;
+    }
     return JSON.parse(raw);
   } catch (e) {
+    console.error('Error reading stored articles', e);
     return INITIAL_ARTICLES;
   }
-};
+}
 
-export const saveStoredArticles = (articles: Article[]) => {
+export function saveStoredArticles(articles: Article[]): void {
+  if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(articles));
   } catch (e) {
-    console.error('Error saving articles:', e);
+    console.error('Error saving articles', e);
   }
-};
+}
 
-// Knowledge Gaps
-export const getStoredGaps = (): KnowledgeGap[] => {
+export function getStoredAuthors(): Author[] {
+  if (typeof window === 'undefined') return INITIAL_AUTHORS;
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.GAPS);
-    if (!raw) return INITIAL_KNOWLEDGE_GAPS;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_KNOWLEDGE_GAPS;
-  }
-};
-
-export const saveStoredGaps = (gaps: KnowledgeGap[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.GAPS, JSON.stringify(gaps));
-  } catch (e) {
-    console.error('Error saving gaps:', e);
-  }
-};
-
-// Flashcards
-export const getStoredFlashcards = (): Flashcard[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.FLASHCARDS);
-    if (!raw) return INITIAL_FLASHCARDS;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_FLASHCARDS;
-  }
-};
-
-export const saveStoredFlashcards = (cards: Flashcard[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.FLASHCARDS, JSON.stringify(cards));
-  } catch (e) {
-    console.error('Error saving flashcards:', e);
-  }
-};
-
-// Forum
-export const getStoredForumThreads = (): ForumThread[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.FORUM);
-    if (!raw) return INITIAL_FORUM_THREADS;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_FORUM_THREADS;
-  }
-};
-
-export const saveStoredForumThreads = (threads: ForumThread[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.FORUM, JSON.stringify(threads));
-  } catch (e) {
-    console.error('Error saving forum threads:', e);
-  }
-};
-
-// Claims
-export const getStoredClaims = (): ClaimRecord[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CLAIMS);
-    if (!raw) return INITIAL_CLAIMS;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_CLAIMS;
-  }
-};
-
-export const saveStoredClaims = (claims: ClaimRecord[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.CLAIMS, JSON.stringify(claims));
-  } catch (e) {
-    console.error('Error saving claims:', e);
-  }
-};
-
-// Books
-export const getStoredBooks = (): FreeBook[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.BOOKS);
-    if (!raw) return INITIAL_BOOKS;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_BOOKS;
-  }
-};
-
-export const saveStoredBooks = (books: FreeBook[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.BOOKS, JSON.stringify(books));
-  } catch (e) {
-    console.error('Error saving books:', e);
-  }
-};
-
-
-// Challenges
-export const getStoredChallenges = (): PersonalChallenge[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CHALLENGES);
-    if (!raw) return INITIAL_CHALLENGES;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_CHALLENGES;
-  }
-};
-
-export const saveStoredChallenges = (challenges: PersonalChallenge[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.CHALLENGES, JSON.stringify(challenges));
-  } catch (e) {
-    console.error('Error saving challenges:', e);
-  }
-};
-
-// Thesis
-export const getStoredThesis = (): ThesisAntithesisItem[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.THESIS);
-    if (!raw) return INITIAL_THESIS_ITEMS;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_THESIS_ITEMS;
-  }
-};
-
-export const saveStoredThesis = (items: ThesisAntithesisItem[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.THESIS, JSON.stringify(items));
-  } catch (e) {
-    console.error('Error saving thesis items:', e);
-  }
-};
-
-// Moderation
-export const getStoredModerationLog = (): ModerationLogEntry[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.MODERATION);
-    if (!raw) return INITIAL_MODERATION_LOG;
-    return JSON.parse(raw);
-  } catch (e) {
-    return INITIAL_MODERATION_LOG;
-  }
-};
-
-export const saveStoredModerationLog = (entries: ModerationLogEntry[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.MODERATION, JSON.stringify(entries));
-  } catch (e) {
-    console.error('Error saving moderation log:', e);
-  }
-};
-
-// Reports
-export const getStoredReports = (): ReportItem[] => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.REPORTS);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch (e) {
-    return [];
-  }
-};
-
-export const saveStoredReports = (reports: ReportItem[]) => {
-  try {
-    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
-  } catch (e) {
-    console.error('Error saving reports:', e);
-  }
-};
-
-// Preferences
-export const getStoredPreferences = (): UserPreferences => {
-  const defaultPrefs: UserPreferences = {
-    language: 'es',
-    theme: 'light',
-    fontFamily: 'serif',
-    assistedReading: false,
-    lineFocus: false,
-    ultraLightMode: false,
-    visualMode: true,
-    textSize: 'standard',
-    defaultLicense: 'CC BY-SA 4.0',
-    demoMode: true,
-    activeView: 'home',
-    selectedArticleId: null,
-    selectedAuthorId: null,
-    selectedAreaId: null,
-  };
-
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.PREFERENCES);
-    if (!raw) return defaultPrefs;
-    const parsed = JSON.parse(raw);
-    const merged = { ...defaultPrefs, ...parsed };
-    if (merged.ultraLightMode) {
-      merged.visualMode = false;
-    } else if (merged.visualMode === undefined) {
-      merged.visualMode = true;
+    const raw = localStorage.getItem(STORAGE_KEYS.AUTHORS);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.AUTHORS, JSON.stringify(INITIAL_AUTHORS));
+      return INITIAL_AUTHORS;
     }
-    return merged;
+    return JSON.parse(raw);
   } catch (e) {
-    return defaultPrefs;
+    console.error('Error reading stored authors', e);
+    return INITIAL_AUTHORS;
   }
-};
+}
 
-export const saveStoredPreferences = (prefs: UserPreferences) => {
+export function saveStoredAuthors(authors: Author[]): void {
+  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEYS.PREFERENCES, JSON.stringify(prefs));
+    localStorage.setItem(STORAGE_KEYS.AUTHORS, JSON.stringify(authors));
   } catch (e) {
-    console.error('Error saving preferences:', e);
+    console.error('Error saving authors', e);
   }
-};
+}
 
-// Exports
-export const exportAllDataAsJson = () => {
-  const exportPayload = {
-    exportDate: new Date().toISOString(),
-    platform: 'Chen — Conocimiento Libre (AGPLv3)',
-    pledge: 'Sin publicidad. Sin algoritmos de engagement. Sin muros de pago.',
-    articles: getStoredArticles(),
-    knowledgeGaps: getStoredGaps(),
-    flashcards: getStoredFlashcards(),
-    challenges: getStoredChallenges(),
-    thesisItems: getStoredThesis(),
-    forumThreads: getStoredForumThreads(),
-    moderationLog: getStoredModerationLog(),
+export function getStoredAuditLogs(): ModerationAuditLog[] {
+  if (typeof window === 'undefined') return INITIAL_AUDIT_LOGS;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.AUDIT_LOGS);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(INITIAL_AUDIT_LOGS));
+      return INITIAL_AUDIT_LOGS;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Error reading stored audit logs', e);
+    return INITIAL_AUDIT_LOGS;
+  }
+}
+
+export function saveStoredAuditLogs(logs: ModerationAuditLog[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(logs));
+  } catch (e) {
+    console.error('Error saving audit logs', e);
+  }
+}
+
+export function resetAllToInitial(): { articles: Article[]; authors: Author[]; auditLogs: ModerationAuditLog[] } {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(INITIAL_ARTICLES));
+    localStorage.setItem(STORAGE_KEYS.AUTHORS, JSON.stringify(INITIAL_AUTHORS));
+    localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(INITIAL_AUDIT_LOGS));
+  }
+  return {
+    articles: INITIAL_ARTICLES,
+    authors: INITIAL_AUTHORS,
+    auditLogs: INITIAL_AUDIT_LOGS,
   };
+}
 
-  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
-    type: 'application/json',
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `chen-export-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-export const exportAllArticlesAsMarkdownBundle = () => {
+/**
+ * Simulates GDPR Article 17 (Right to Erasure) on an author without breaking citations or version history.
+ * - PII (name, email, githubUser, orcidId) is wiped and replaced by an immutable cryptographic surrogate `anon-[hash]`
+ * - The article texts, SHA-256 version hashes, and inbound/outbound citations are preserved intact.
+ */
+export function simulateGdprErasure(authorId: string): {
+  updatedAuthors: Author[];
+  updatedArticles: Article[];
+  erasedAuthor: Author | null;
+} {
+  const authors = getStoredAuthors();
   const articles = getStoredArticles();
-  let fullMarkdown = `# Exportación de Artículos y Notas de Chen\n\nFecha: ${new Date().toLocaleDateString()}\nLicencia general: CC BY-SA 4.0 / Abierta\n\n---\n\n`;
 
-  articles.forEach((art) => {
-    fullMarkdown += `## ${art.title}\n`;
-    fullMarkdown += `> ${art.subtitle}\n\n`;
-    fullMarkdown += `- **Autor**: ${art.author.name}\n`;
-    fullMarkdown += `- **Área**: ${art.area}\n`;
-    fullMarkdown += `- **Nivel**: ${art.level}\n`;
-    fullMarkdown += `- **Licencia**: ${art.license}\n`;
-    fullMarkdown += `- **Estado epistémico**: ${art.epistemicStatus}\n`;
-    fullMarkdown += `- **Fecha**: ${art.publishedDate} (Versión ${art.versionNumber})\n\n`;
-    fullMarkdown += `${art.contentMarkdown}\n\n`;
-    if (art.citations.length > 0) {
-      fullMarkdown += `### Citas y Evidencias\n`;
-      art.citations.forEach((c) => {
-        fullMarkdown += `- [${c.relation.toUpperCase()}] **${c.targetArticleTitle}** (${c.targetAuthor}): "${c.quoteText}" — ${c.explanation}\n`;
-      });
-      fullMarkdown += `\n`;
+  const authorIndex = authors.findIndex(a => a.id === authorId);
+  if (authorIndex === -1) {
+    return { updatedAuthors: authors, updatedArticles: articles, erasedAuthor: null };
+  }
+
+  const targetAuthor = authors[authorIndex];
+  const shortHash = Math.abs(
+    targetAuthor.id.split('').reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0)
+  ).toString(16).substring(0, 8);
+  const anonIdentifier = `anon-${shortHash}`;
+
+  const updatedAuthor: Author = {
+    ...targetAuthor,
+    name: `Investigador Anonimizado [RGPD Art. 17 · ${anonIdentifier}]`,
+    handle: anonIdentifier,
+    email: `${anonIdentifier}@anonymized.chen.local`,
+    role: 'Autor Anonimizado según Derecho al Olvido (RGPD UE)',
+    githubUser: undefined,
+    orcidId: undefined,
+    avatarUrl: undefined,
+    isErased: true,
+    erasedAt: new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }),
+    anonIdentifier,
+  };
+
+  const updatedAuthors = [...authors];
+  updatedAuthors[authorIndex] = updatedAuthor;
+
+  // Update articles: anonymize author in articles, keep contentHash and versions untouched
+  const updatedArticles = articles.map(art => {
+    let modified = false;
+    let author = art.author;
+    if (author.id === authorId) {
+      author = updatedAuthor;
+      modified = true;
     }
-    fullMarkdown += `---\n\n`;
+
+    // Update citedByInbound
+    const citedByInbound = art.citedByInbound.map(cit => {
+      if (cit.sourceAuthorHandle === targetAuthor.handle || cit.sourceAuthorName === targetAuthor.name) {
+        modified = true;
+        return {
+          ...cit,
+          sourceAuthorName: updatedAuthor.name,
+          sourceAuthorHandle: updatedAuthor.handle,
+        };
+      }
+      return cit;
+    });
+
+    // Update citationsOutbound
+    const citationsOutbound = art.citationsOutbound.map(cit => {
+      if (cit.targetAuthorName === targetAuthor.name) {
+        modified = true;
+        return {
+          ...cit,
+          targetAuthorName: updatedAuthor.name,
+        };
+      }
+      return cit;
+    });
+
+    if (modified) {
+      return {
+        ...art,
+        author,
+        citedByInbound,
+        citationsOutbound,
+      };
+    }
+    return art;
   });
 
-  const blob = new Blob([fullMarkdown], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `chen-articulos-${new Date().toISOString().slice(0, 10)}.md`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+  saveStoredAuthors(updatedAuthors);
+  saveStoredArticles(updatedArticles);
 
-export const resetToSeedData = () => {
-  localStorage.clear();
-  window.location.reload();
-};
+  return {
+    updatedAuthors,
+    updatedArticles,
+    erasedAuthor: updatedAuthor,
+  };
+}

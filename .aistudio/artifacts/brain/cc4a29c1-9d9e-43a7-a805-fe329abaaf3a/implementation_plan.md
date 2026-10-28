@@ -1,121 +1,94 @@
-# Plan de Descongestión Visual y Modos Ligero vs. Óptimo en Chen
+# Chen — Protocolo de Publicación y Argumentación Abierta (Versión 1.0 · MVP Nuclear)
 
-## Resumen Ejecutivo
-Transformar la experiencia visual de la plataforma para eliminar la sensación de sobrecarga («a petar»), despejar la cabecera y el muro principal con mayor espacio en blanco y tarjetas simplificadas, e implementar una distinción visual real y evidente entre el **Modo Ligero** (ahorro extremo de recursos, sin sombras ni animaciones, diseño plano y limpio estilo papel) y el **Modo Óptimo** (diseño enriquecido con Tailwind, micro-interacciones, sutiles elevaciones y transiciones suaves).
-
----
-
-## User Review & Critical Decisions
-
-> [!IMPORTANT]
-> **Decisiones confirmadas por el usuario en la fase de clarificación:**
-> 1. **Modo Ligero**: Máximo ahorro de recursos, ultra-liviano, sin decoraciones superfluas ni animaciones, para uso en cualquier dispositivo sin consumir CPU/batería.
-> 2. **Modo Óptimo**: Diseño visual enriquecido con Tailwind CSS, micro-interacciones suaves, sombras sutiles, desenfoques y transiciones fluidas.
-> 3. **Descongestión de la interfaz**: Introducción de mayor espacio en blanco, ritmo tipográfico respirado y simplificación radical de las tarjetas de artículos (eliminando la acumulación excesiva de etiquetas tipo píldora).
+## Resumen Ejecutivo de Arquitectura y Entrega
+Se ha implementado de forma rigurosa la **Versión 1.0 (MVP Nuclear)** del protocolo Chen, erradicando por completo el bloatware (selectores de Modo Visual / Modo Ligero, pomodoros, calendarios, relojes y gamificación) y estableciendo una interfaz editorial sobria, accesible (WCAG 2.1 AAA) y ultrarrápida sin conexiones a terceros (cero Google Fonts, cero scripts de rastreo).
 
 ---
 
-## 1. Overview & Core Concept
+## 1. Cumplimiento de Reglas Estrictas Anti-Bloatware
 
-- **El problema**: La interfaz actual acumula múltiples elementos en poco espacio (filas de botones, badges acumulados, bordes densos y controles amontonados). Además, el botón de diseño óptimo no producía un cambio visual apreciable para el usuario al limitarse a micro-reglas CSS casi invisibles.
-- **La solución**: 
-  1. Rediseñar el conmutador de modo para que el cambio sea inmediato, visible e intuitivo:
-     - **🍃 Modo Ligero**: Estilo minimalista plano (tipo texto editorial / papel de baja carga), cero desenfoques, cero animaciones, bordes ultrafinos o eliminados, máxima legibilidad y respuesta instantánea.
-     - **✨ Modo Óptimo**: Estilo visual contemporáneo con Tailwind CSS, transiciones de elevación en tarjetas, gradaciones sutiles, micro-animaciones al interactuar y desenfoques elegantes.
-  2. Aligerar el layout general (`HomeView`, `Header`, `FreeBooksView`, `StudyPathView`): espaciado generoso, eliminar el "sándwich de badges" en tarjetas y agrupar accesos secundarios de manera ordenada.
-
----
-
-## 2. User Experience & Visual Design
-
-### A. Cabecera y Navegación Despejada
-- Reorganizar la barra superior para evitar amontonamiento horizontal:
-  - Logotipo Chen + 4 enlaces directos esenciales: `Artículos`, `Libros`, `Rutas`, `Comunidad`.
-  - Menú desplegable `Más` para herramientas accesorias (`Huecos del saber`, `Foro`, `Retos`, `Líneas rojas`, etc.).
-  - Selector de modo claramente diferenciado en el extremo derecho:
-    - Estado Ligero: Botón plano `[🍃 Ligero]` con indicador visual sutil.
-    - Estado Óptimo: Botón refinado `[✨ Óptimo]` con acento visual claro.
-
-### B. Muro Principal (`HomeView`) con Respiración Visual
-- **Hero editorial limpio**: Reducir la fila de 4 botones apiñados a dos acciones principales (`Escribir artículo` y `Explorar catálogo`), dando aire y jerarquía al encabezado.
-- **Tarjetas de artículos desaturadas**:
-  - Eliminar los 5 chips/píldoras amontonados en la parte superior de cada tarjeta.
-  - Reemplazar por una línea tipográfica limpia y sobria: `Área · Tiempo de lectura · Fecha`.
-  - Títulos con escala tipográfica proporcional y espaciado de párrafo holgado.
-  - El estado epistémico y la licencia se presentan de forma discreta como texto unboxed, evitando el ruido visual.
-
-### C. Comportamiento Diferenciado: Ligero vs. Óptimo
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│ MODO LIGERO (data-ultralight="true")                                   │
-│ • Fondo plano y contrastado sin desenfoques (backdrop-filter: none)    │
-│ • Tarjetas con bordes ultra-sencillos (1px neutral) o fondo continuo   │
-│ • Cero sombras complejas (box-shadow: none)                            │
-│ • Cero animaciones / transiciones (rendering instantáneo)              │
-│ • Elementos decorativos e iconos redundantes ocultos o simplificados    │
-└────────────────────────────────────────────────────────────────────────┘
-
-┌────────────────────────────────────────────────────────────────────────┐
-│ MODO ÓPTIMO (data-ultralight="false")                                  │
-│ • Efectos de cristal esmerilado en cabecera (backdrop-blur-md)         │
-│ • Elevación suave al pasar el ratón en tarjetas (translate-y, shadow)  │
-│ • Transiciones fluidas de color y foco                                 │
-│ • Indicadores semánticos con micro-detalles y estética pulida Tailwind  │
-└────────────────────────────────────────────────────────────────────────┘
-```
+1. **Extirpación Total de Widgets Ajenos:**
+   - Eliminados por completo los componentes `AcademicCalendarView`, `SoundscapeWidget`, `FocusTimerWidget`, `MedalsShowcase` y `VideoPrivacyPlayer`.
+   - Cero selectores de «Modo Visual / Modo Ligero». Existe una única interfaz editorial con tema pergamino claro (`#FAF9F5`) y obsidiana oscura (`#0F1115`).
+2. **Privacidad por Diseño y 0 KB Externos:**
+   - Cero llamadas a `fonts.googleapis.com` o CDNs externas.
+   - Pila de fuentes nativas del sistema:
+     - Serif editorial: `Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif`.
+     - Sans UI: `system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`.
+     - Mono para hashes de versión: `ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace`.
+3. **Accesibilidad (WCAG 2.1 AAA):**
+   - Contraste superior a 7:1 en textos principales.
+   - Navegación semántica (`<header>`, `<nav>`, `<main>`, `<article>`, `<footer>`).
+   - Soporte exhaustivo para navegación por teclado (`:focus-visible`) y enlace de salto de accesibilidad inicial.
 
 ---
 
-## 3. Key Product Decisions & Trade-Offs
+## 2. Las 4 Vistas Nucleares Implementadas
 
-- **Decisión 1: Control global mediante atributo `data-ultralight` enriquecido en CSS y clases condicionales**:
-  - *Enfoque*: En lugar de limitarse a desactivar animaciones CSS, aplicar estilos dedicados en `index.css` y condicionales en los componentes que simplifiquen estructuralmente los elementos visibles cuando el modo ligero está activado.
-  - *Ventaja*: Cambio visual drástico, evidente y efectivo sin requerir dos codebases separadas.
-- **Decisión 2: Descongestión de tarjetas según la constitución de diseño (Zero-Pill Discipline)**:
-  - *Enfoque*: Sustituir los bloques de badges multicolores por metadatos tipográficos con separadores simples (`·`).
-  - *Ventaja*: Transmite elegancia académica y reduce la fatiga visual de inmediato.
+### Vista 1: Landing Estratégica & Explorador del Grafo (`HomeHeroAndPositioning`)
+- **Hero Editorial:**
+  - Título exacto: *«Internet ha resuelto la distribución del texto, pero ha roto la conversación intelectual.»*
+  - Subtítulo exacto: *«Chen es el protocolo de publicación técnica y ensayística donde cada texto se integra en una red de argumentación verificable. Sin algoritmos de indignación, sin anuncios, con citas bidireccionales inmutables.»*
+  - CTAs principales: `"Explorar Artículos y Debates"` y `"Publicar Tesis (Markdown)"`.
+- **Demostrador Interactivo en Vivo (Anatomía de una Cita con Función):**
+  - Tesis fuente: *«La complejidad algorítmica de los sistemas distribuidos modernos hace inviable el consenso determinista en redes no confiables»* `[Estado: Hipótesis] [Hash: #7e9f3b]`.
+  - Pestañas interactivas de filtrado: `Todas`, `[+ APOYA]` (esmeralda), `[- CONTRADICE]` (rojo rubí con contraejemplo PBFT de Castro y Liskov 1999), `[→ AMPLÍA]` (azul cerceta con extensión epistemológica de Lakatos).
+  - Al pulsar sobre cualquier tarjeta, navega directamente al lector para ese artículo.
+- **Tabla de Posicionamiento y Comparativa (v1.0):**
+  - Enfrenta en 4 dimensiones (*Descubrimiento y Red*, *Mecánica de Debate*, *Portafolio Profesional*, *Preservación y Citas Inmutables*) a *Blog Personal*, *Repositorio GitHub* y *Plataforma Chen*.
+- **Cuadrante Visual de Posicionamiento Epistémico:**
+  - Contrasta la propuesta de Chen con Wikipedia (consenso neutro sin tesis original), ArXiv (PDFs estáticos sin debate granular) y Medium/Substack (muros de pago y algoritmos de engagement).
+- **Hoja de Ruta Ejecutiva (Fases 1 a 3):**
+  - Fase 1 (Meses 1-2): Protocolo Nuclear (15 artículos, ECR > 40%, 0 € de presupuesto).
+  - Fase 2 (Meses 3-6): Consolidación y Portabilidad (Obsidian `[[wikilinks]]`, BibTeX, 100 artículos, 0 €).
+  - Fase 3 (Meses 7-12): Ecosistema y Gobernanza (API pública de grafos, federación, 3 seminarios universitarios).
+- **Feed de Artículos Interconectados:**
+  - 5 artículos seminales con insignias epistémicas, recuentos bidireccionales de citas y hashes SHA-256.
+
+### Vista 2: Lector de Artículos con Subrayado y Cita en Caliente (`ArticleReader`)
+- **Cabecera Rigurosa:** Autor verificado con handle, insignias de GitHub y ORCID, fecha, versión `v1.0 · SHA-256`, licencia CC BY-SA 4.0, badge epistémico (`Hecho`, `Hipótesis`, `Opinión`) y exportador a `.md` puro con frontmatter.
+- **Interacción de Subrayado y Cita (`window.getSelection`):**
+  - Al seleccionar entre 20 y 400 caracteres en el cuerpo del texto, emerge un botón flotante dinámico: `"Citar / Replicar este fragmento (XX car.)"`.
+  - Al pulsarlo, transfiere automáticamente el fragmento seleccionado, el hash de versión y los metadatos al editor.
+- **Subrayados Sutiles en Párrafos Citados:**
+  - Los fragmentos que ya han recibido citas en la red aparecen subrayados sutilmente con una insignia `[1 réplica]`. Al hacer clic, desplazan suavemente al lector hacia la réplica en el grafo.
+- **Sección «Citado por (Grafo Bidireccional)»:**
+  - Filtro por postura argumental (`Todas`, `[+ Apoya]`, `[- Contradice]`, `[→ Amplía]`).
+  - Muestra el fragmento citado, la justificación de 1-2 oraciones del autor citante y un botón para saltar al artículo de la réplica.
+
+### Vista 3: Editor de Tesis con Cita Anclada (`CitationEditor`)
+- **Evidencia Anclada Criptográficamente:**
+  - Tarjeta destacada con el fragmento citado original, el autor fuente, la versión de destino y su hash SHA-256 inmutable.
+- **Selector Obligatorio de Postura Argumental:**
+  - `[+ APOYA]` (Verde esmeralda): Aporta datos empíricos, pruebas formales o deducciones compatibles.
+  - `[- CONTRADICE]` (Rojo rubí): Identifica contraejemplos, fallos lógicos o refutaciones directas.
+  - `[→ AMPLÍA]` (Azul cerceta): Extiende el marco teórico a nuevos dominios o aclara definiciones límite.
+- **Justificación Epistémica Obligatoria:** Campo de texto (1-2 oraciones) donde el autor explica qué aporta su réplica.
+- **Redacción en Markdown con Pestañas Escribir / Previsualizar:** Título, subtítulo, estado epistémico y nota de falsabilidad.
+- **Publicación Inmutable:**
+  - Generación de hash SHA-256 de contenido.
+  - Persistencia en `localStorage`.
+  - Actualización reactiva instantánea del array `citedByInbound` en el artículo destino y redirección al lector.
+
+### Vista 4: Arquitectura, RGPD y Modelo SQL (`GdprArchitecturePanel`)
+- **Inmutabilidad por Versión vs Derecho al Olvido (RGPD Art. 17):**
+  - Desglose del equilibrio jurídico: las licencias Creative Commons son irrevocables para la obra, mientras que la PII debe eliminarse mediante disociación a `anon-[hash]`.
+- **Simulador Interactivo en Vivo de Borrado RGPD:**
+  - Permite seleccionar cualquier autor (ej. *Ing. Andrés Keller* o *Dra. Clara Méndez*).
+  - Al pulsar `"Simular Borrado RGPD"`, suprime su nombre civil, correo, usuario de GitHub y ORCID, reemplazándolos por `anon-[hash]`.
+  - Demuestra en vivo que sus artículos y todas las citas cruzadas hacia sus hashes SHA-256 se preservan al 100% sin romper el grafo.
+  - Incluye botón para restaurar el estado de prueba.
+- **Modelo Relacional PostgreSQL (5 Tablas):**
+  - Código DDL completo para `users`, `articles`, `article_versions`, `citations` y `moderation_audit_logs`.
+  - Botón interactivo `"Copiar Modelo SQL"` con retroalimentación visual.
+- **Registro Público y Transparente de Moderación:**
+  - Tabla de incidentes auditables con hashes salteados para garantizar gobernanza sin exponer la identidad de usuarios denunciantes o sancionados.
 
 ---
 
-## 4. Technical Architecture & Component Diagram
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                             App.tsx                                 │
-│  - preferences.ultraLightMode: boolean                              │
-│  - document.documentElement.setAttribute('data-ultralight', ...)     │
-└──────────────┬──────────────────────────────────────┬───────────────┘
-               │                                      │
-               ▼                                      ▼
-     ┌──────────────────┐                   ┌──────────────────┐
-     │    Header.tsx    │                   │   HomeView.tsx   │
-     │  - Botón Ligero  │                   │  - Hero aireado  │
-     │    vs Óptimo     │                   │  - Tarjetas      │
-     │  - Menú ordenado │                   │    desaturadas   │
-     └──────────────────┘                   └──────────────────┘
-               │                                      │
-               └──────────────────┬───────────────────┘
-                                  ▼
-                     ┌───────────────────────────┐
-                     │         index.css         │
-                     │  - [data-ultralight="true"]│
-                     │    Layout plano & sobrio  │
-                     │  - Modo Óptimo Tailwind:  │
-                     │    Sombras, desenfoques y │
-                     │    transiciones activas   │
-                     └───────────────────────────┘
-```
-
----
-
-## Plan de Verificación
-
-1. **Prueba del conmutador Ligero / Óptimo**:
-   - Activar «Ligero»: verificar que las sombras, animaciones y desenfoques desaparecen, adoptando una apariencia plana, directa y ultraligera.
-   - Desactivar (Modo Óptimo): verificar que reaparecen las transiciones suaves, el desenfoque de la cabecera y las micro-interacciones de Tailwind.
-2. **Prueba de respiración visual en `HomeView`**:
-   - Comprobar que no hay saturación ni desbordamientos en móvil ni en escritorio (1440px).
-   - Verificar que las tarjetas se leen con claridad y sin cúmulo de etiquetas circulares/píldoras.
-3. **Validación técnica**:
-   - Ejecutar `lint_applet` (`tsc --noEmit`) asegurando 0 errores de compilación y tipos.
-   - Ejecutar `compile_applet` para certificar la compilación limpia de Vite.
+## 3. Semilla de Artículos Interconectados
+1. **Dra. Clara Méndez**: *«Imposibilidad de consenso determinista en redes asíncronas no confiables (Teorema FLP)»* (`#7e9f3b21`, Hecho formal).
+2. **Ing. Andrés Keller**: *«Tolerancia práctica a fallas bizantinas (PBFT) bajo sincronía parcial»* (`#c2d854ab`, Hecho formal) — Cita con `[- CONTRADICE]` a Méndez.
+3. **Dra. Elena Vasconcelos**: *«La asimetría deductiva del falsacionismo popperiano y los límites del empirismo»* (`#8f3a9c7b`, Hipótesis).
+4. **Dr. Mateo Silvetti**: *«La tesis holista de Duhem-Quine como objeción al falsacionismo ingenuo»* (`#4b7e12f0`, Hecho formal) — Cita con `[- CONTRADICE]` a Vasconcelos.
+5. **Dr. Julián Arispe**: *«Metodología de los programas de investigación científica y falsacionismo sofisticado»* (`#a3c9415e`, Hipótesis) — Cita con `[→ AMPLÍA]` a Vasconcelos y Silvetti.
