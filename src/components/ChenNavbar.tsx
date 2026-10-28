@@ -2,8 +2,8 @@ import React from 'react';
 import { Author } from '../types';
 
 interface ChenNavbarProps {
-  currentView: 'home' | 'reader' | 'editor' | 'gdpr';
-  onNavigate: (view: 'home' | 'reader' | 'editor' | 'gdpr', articleId?: string) => void;
+  currentView: 'home' | 'reader' | 'editor' | 'manifesto';
+  onNavigate: (view: 'home' | 'reader' | 'editor' | 'manifesto', targetElementId?: string) => void;
   currentAuthor: Author;
   authors: Author[];
   onSwitchAuthor: (author: Author) => void;
@@ -23,14 +23,14 @@ export const ChenNavbar: React.FC<ChenNavbarProps> = ({
   return (
     <header
       role="banner"
-      className="sticky top-0 z-40 border-b border-stone-200 dark:border-stone-800 bg-[#FAF9F5]/90 dark:bg-[#0F1115]/90 backdrop-blur-md transition-colors"
+      className="sticky top-0 z-40 border-b border-stone-200 dark:border-stone-800 bg-[#FAF9F5]/95 dark:bg-[#0F1115]/95 backdrop-blur-md transition-colors"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Brand / Logo */}
+        {/* Logotipo / Marca */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => onNavigate('home')}
-            className="group flex items-baseline gap-2.5 text-left focus-visible:outline-2 focus-visible:outline-teal-600 rounded-sm"
+            className="group flex items-baseline gap-2.5 text-left focus-visible:outline-2 focus-visible:outline-teal-600 rounded-sm cursor-pointer"
             aria-label="Ir a la portada de Chen"
           >
             <span className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
@@ -42,22 +42,29 @@ export const ChenNavbar: React.FC<ChenNavbarProps> = ({
           </button>
         </div>
 
-        {/* Navigation Links */}
+        {/* Enlaces de Navegación React (Controlados por Estado, Cero Enlaces Rotos) */}
         <nav role="navigation" aria-label="Navegación principal" className="flex items-center gap-1 sm:gap-2">
           <button
-            onClick={() => onNavigate('home')}
-            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
+            onClick={() => onNavigate('home', 'explorador-articulos')}
+            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
               currentView === 'home'
                 ? 'bg-stone-200 dark:bg-stone-800 text-stone-900 dark:text-white font-semibold'
                 : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800/60'
             }`}
           >
-            Explorar
+            Explorar Artículos
+          </button>
+
+          <button
+            onClick={() => onNavigate('home', 'anatomia-citas')}
+            className="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors cursor-pointer"
+          >
+            Grafo de Citas
           </button>
 
           <button
             onClick={() => onNavigate('editor')}
-            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
               currentView === 'editor'
                 ? 'bg-teal-700 text-white font-semibold'
                 : 'text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/40 border border-teal-600/30'
@@ -68,28 +75,27 @@ export const ChenNavbar: React.FC<ChenNavbarProps> = ({
           </button>
 
           <button
-            onClick={() => onNavigate('gdpr')}
-            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors ${
-              currentView === 'gdpr'
+            onClick={() => onNavigate('manifesto')}
+            className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
+              currentView === 'manifesto'
                 ? 'bg-stone-200 dark:bg-stone-800 text-stone-900 dark:text-white font-semibold'
                 : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800/60'
             }`}
-            title="Arquitectura de Inmutabilidad, RGPD y Modelo SQL"
           >
-            <span className="hidden md:inline">Arquitectura &amp; </span>RGPD
+            Manifiesto &amp; RGPD
           </button>
         </nav>
 
-        {/* Right side: Session Switcher & Dark Mode */}
+        {/* Zona Derecha: Sesión de Autor Simulada y Selector de Tema */}
         <div className="flex items-center gap-2">
-          {/* Author session quick-select */}
+          {/* Selector de Sesión de Autor */}
           <div className="hidden lg:flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-400 bg-stone-100 dark:bg-stone-800/70 py-1 px-2.5 rounded-full border border-stone-200 dark:border-stone-700">
             <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
-            <span className="font-mono text-[11px] truncate max-w-[130px]">
+            <span className="font-mono text-[11px] truncate max-w-[140px]">
               {currentAuthor.isErased ? currentAuthor.handle : `@${currentAuthor.handle}`}
             </span>
             <select
-              aria-label="Cambiar identidad de autor simulada"
+              aria-label="Seleccionar autor activo para publicar o simular sesión"
               value={currentAuthor.id}
               onChange={(e) => {
                 const found = authors.find((a) => a.id === e.target.value);
@@ -105,12 +111,12 @@ export const ChenNavbar: React.FC<ChenNavbarProps> = ({
             </select>
           </div>
 
-          {/* Theme Toggle */}
+          {/* Conmutador de Tema (Pergamino Claro vs Obsidiana Oscura) */}
           <button
             onClick={onToggleTheme}
-            className="p-2 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus-visible:outline-2 focus-visible:outline-teal-600"
-            aria-label={theme === 'dark' ? 'Activar tema claro (pergamino)' : 'Activar tema oscuro (obsidiana)'}
-            title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            className="p-2 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus-visible:outline-2 focus-visible:outline-teal-600 cursor-pointer"
+            aria-label={theme === 'dark' ? 'Activar tema claro pergamino' : 'Activar tema oscuro obsidiana'}
+            title={theme === 'dark' ? 'Cambiar a modo pergamino claro' : 'Cambiar a modo obsidiana oscura'}
           >
             {theme === 'dark' ? (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

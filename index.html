@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chen — Conocimiento Libre</title>
-    <meta name="description" content="Plataforma de conocimiento abierto, citas argumentativas, huecos del saber y estudio personal sin algoritmos de engagement ni rastreo." />
-    <meta property="og:title" content="Chen — Conocimiento Libre" />
-    <meta property="og:description" content="Plataforma de conocimiento abierto, citas argumentativas, huecos del saber y estudio personal sin algoritmos de engagement ni rastreo." />
+    <title>Chen — Protocolo de Argumentación Abierta</title>
+    <meta name="description" content="Protocolo de publicación técnica y ensayística donde cada texto se integra en una red de argumentación verificable mediante citas bidireccionales inmutables." />
+    <meta property="og:title" content="Chen — Protocolo de Argumentación Abierta" />
+    <meta property="og:description" content="Red de argumentación abierta con citas funcionales [+ Apoya], [- Contradice] y [→ Amplía] sin algoritmos de indignación ni rastreo." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#0f766e" />
@@ -17,12 +17,12 @@
     <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
     <link rel="apple-touch-icon" href="/icon-192.svg" />
 
-    <!-- Schema.org JSON-LD para SEO y accesibilidad de motores de búsqueda -->
+    <!-- Schema.org JSON-LD para SEO y accesibilidad -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "EducationalOrganization",
-      "name": "Chen — Conocimiento Libre",
+      "name": "Chen — Protocolo de Argumentación Abierta",
       "description": "Red de conocimiento abierto donde las ideas se conectan por citas semánticas y evidencia deductiva, sin algoritmos de popularidad ni publicidad.",
       "url": "https://chen-conocimiento-libre.org",
       "inLanguage": "es",
@@ -36,19 +36,18 @@
       Saltar al contenido principal
     </a>
 
-    <!-- Contenido semántico inicial SSR/SSG fallback para lectores de pantalla y navegadores sin JS -->
+    <!-- Contenedor raíz donde React monta limpiamente sin duplicados estáticos exteriores -->
     <div id="root">
       <header role="banner" class="border-b border-stone-200 bg-white/95 px-4 py-4 text-stone-900">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="font-serif text-xl font-bold tracking-tight text-teal-800">Chen</span>
-            <span class="text-xs font-mono uppercase text-stone-500">· Conocimiento Libre</span>
+            <span class="text-xs font-mono uppercase text-stone-500">· Protocolo de Argumentación Abierta</span>
           </div>
-          <nav role="navigation" aria-label="Navegación principal">
+          <nav role="navigation" aria-label="Navegación estática">
             <ul class="flex items-center gap-4 text-xs font-medium text-stone-700">
-              <li><a href="#articulos" class="hover:underline">Artículos</a></li>
-              <li><a href="#areas" class="hover:underline">Áreas del Saber</a></li>
-              <li><a href="#manifiesto" class="hover:underline">Manifiesto</a></li>
+              <li><a href="#main-content" class="hover:underline">Explorar Artículos</a></li>
+              <li><a href="#demo-title" class="hover:underline">Grafo de Citas</a></li>
             </ul>
           </nav>
         </div>
@@ -67,21 +66,21 @@
             Protocolo de Argumentación Abierta · Sin Algoritmos de Popularidad
           </div>
           <h1 id="hero-title" class="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 leading-tight">
-            Conocimiento libre, articulado con argumentos y citas con función.
+            Internet ha resuelto la distribución del texto, pero ha roto la conversación intelectual.
           </h1>
           <p class="font-serif text-base text-stone-700 leading-relaxed max-w-2xl">
-            En Chen las afirmaciones no compiten por aplausos superficiales. Cada tesis se conecta directamente con la evidencia mediante tres relaciones lógicas: 
-            <strong class="text-emerald-800">apoya</strong>, 
-            <strong class="text-rose-800">contradice</strong> y 
-            <strong class="text-teal-800">amplía</strong>.
+            Chen es el protocolo de publicación técnica y ensayística donde cada texto se integra en una red de argumentación verificable. Cada tesis se conecta directamente con la evidencia mediante tres relaciones lógicas canónicas: 
+            <strong class="text-emerald-800">[ + Apoya ]</strong>, 
+            <strong class="text-rose-800">[ - Contradice ]</strong> y 
+            <strong class="text-teal-800">[ → Amplía ]</strong>.
           </p>
         </section>
 
-        <!-- Mockup Visual de Citas Semánticas en el Hero -->
+        <!-- Mockup Visual con las 3 Relaciones Lógicas Canónicas -->
         <section aria-labelledby="demo-title" class="p-6 rounded-xl border border-stone-300 bg-stone-50/50 space-y-6">
           <div class="flex items-center justify-between pb-3 border-b border-stone-200">
             <h2 id="demo-title" class="text-xs font-mono font-bold uppercase tracking-wider text-stone-600">
-              Cómo funciona Chen en 5 segundos: Anatomía de una Cita con Función
+              Anatomía de una Cita con Función (3 Relaciones Canónicas)
             </h2>
             <span class="px-2 py-0.5 rounded font-mono text-[11px] font-semibold bg-amber-100 text-amber-900 border border-amber-300">
               [ Estado Epistémico: Hipótesis ]
@@ -94,16 +93,17 @@
               <time datetime="2026-10-28">28 Octubre 2026</time>
             </header>
             <p class="font-serif text-sm text-stone-900 leading-relaxed">
-              «Ninguna cantidad de cisnes blancos observados puede justificar deductivamente la conclusión de que todos los cisnes son blancos; la observación de un único cisne negro basta para refutarla de forma concluyente.»
+              «Ninguna cantidad de cisnes blancos observados puede justificar deductivamente que todos los cisnes son blancos; la observación de un único cisne negro basta para refutarla de forma concluyente.»
             </p>
           </article>
 
-          <!-- Conexiones Lógicas de Citas -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 3 Conexiones Lógicas Estandarizadas -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- 1. Apoya -->
             <div class="p-3.5 rounded-lg border-l-4 border-emerald-600 bg-emerald-50/70 border border-emerald-200 space-y-1.5 text-xs text-stone-800">
               <div class="flex items-center justify-between font-mono font-bold text-emerald-900">
                 <span>[ + Apoya ]</span>
-                <span class="text-[10px] text-emerald-700 font-normal">Cita deductiva</span>
+                <span class="text-[10px] text-emerald-700 font-normal">Deducción Formal</span>
               </div>
               <p class="font-serif italic text-stone-900">
                 «La asimetría lógica entre verificabilidad y refutabilidad: las teorías nunca son verificables, solo corroboradas provisionalmente.»
@@ -111,15 +111,28 @@
               <span class="block text-[11px] text-stone-600 font-medium">Karl Popper (1934) — Logik der Forschung</span>
             </div>
 
+            <!-- 2. Contradice -->
             <div class="p-3.5 rounded-lg border-l-4 border-rose-600 bg-rose-50/70 border border-rose-200 space-y-1.5 text-xs text-stone-800">
               <div class="flex items-center justify-between font-mono font-bold text-rose-900">
-                <span>[ - Contradice / Objeción ]</span>
+                <span>[ - Contradice ]</span>
                 <span class="text-[10px] text-rose-700 font-normal">Tesis Holista</span>
               </div>
               <p class="font-serif italic text-stone-900">
                 «Una hipótesis nunca se somete a contraste de forma aislada; siempre se refuta un sistema entero de supuestos auxiliares.»
               </p>
-              <span class="block text-[11px] text-stone-600 font-medium">Pierre Duhem & W.V.O. Quine (1951)</span>
+              <span class="block text-[11px] text-stone-600 font-medium">Pierre Duhem &amp; W.V.O. Quine (1951)</span>
+            </div>
+
+            <!-- 3. Amplía -->
+            <div class="p-3.5 rounded-lg border-l-4 border-teal-600 bg-teal-50/70 border border-teal-200 space-y-1.5 text-xs text-stone-800">
+              <div class="flex items-center justify-between font-mono font-bold text-teal-900">
+                <span>[ → Amplía ]</span>
+                <span class="text-[10px] text-teal-700 font-normal">Programas de Investigación</span>
+              </div>
+              <p class="font-serif italic text-stone-900">
+                «La ciencia no progresa por refutaciones aisladas, sino mediante programas de investigación con un núcleo firme protegido por un cinturón heurístico modificable.»
+              </p>
+              <span class="block text-[11px] text-stone-600 font-medium">Imre Lakatos (1970)</span>
             </div>
           </div>
         </section>

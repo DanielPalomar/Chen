@@ -13,7 +13,7 @@ interface CitationEditorProps {
     targetVersionHash: string;
     targetAuthorName: string;
   };
-  onPublishSuccess: (newArticle: Article) => void;
+  onPublishSuccess: (newArticle: Article, targetArticleId?: string, createdCitationId?: string) => void;
   onCancel: () => void;
 }
 
@@ -25,7 +25,7 @@ export const CitationEditor: React.FC<CitationEditorProps> = ({
   onPublishSuccess,
   onCancel,
 }) => {
-  // Quote evidence state
+  // Evidencia Anclada
   const [hasPinnedQuote, setHasPinnedQuote] = useState<boolean>(!!prefilledQuote);
   const [quotedSnippet, setQuotedSnippet] = useState(prefilledQuote?.sourceSnippet || '');
   const [targetArticleId, setTargetArticleId] = useState(prefilledQuote?.targetArticleId || '');
@@ -33,11 +33,15 @@ export const CitationEditor: React.FC<CitationEditorProps> = ({
   const [targetVersionHash, setTargetVersionHash] = useState(prefilledQuote?.targetVersionHash || '');
   const [targetAuthorName, setTargetAuthorName] = useState(prefilledQuote?.targetAuthorName || '');
 
-  // Citation stance and justification
+  // Selector obligatorio de las 3 relaciones canónicas estandarizadas
   const [relation, setRelation] = useState<CitationRelation>('contradicts');
   const [reasoning, setReasoning] = useState('');
 
-  // Article content
+  // Identidad de autor y toggle simulado de GitHub OAuth
+  const [isGithubVerified, setIsGithubVerified] = useState(true);
+  const [customHandle, setCustomHandle] = useState(currentAuthor.handle || 'investigador-demo');
+
+  // Formulario del nuevo artículo
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [epistemicStatus, setEpistemicStatus] = useState<EpistemicStatus>('hypothesis');
@@ -45,15 +49,15 @@ export const CitationEditor: React.FC<CitationEditorProps> = ({
   const [contentMarkdown, setContentMarkdown] = useState(
     `## 1. Planteamiento de la tesis
 
-Escribe aquí tu fundamentación rigurosa...
+Presenta aquí la premisa o contraejemplo formulado frente a la evidencia citada...
 
-## 2. Argumentación deductiva o empírica
+## 2. Demostración y fundamentación analítica
 
-Detalla las premisas lógicas o los datos observacionales que sustentan tu posición...
+Detalla las derivaciones lógicas, datos empíricos o supuestos auxiliares pertinentes...
 
-## 3. Conclusión falsable
+## 3. Condición explícita de falsabilidad
 
-¿Qué hallazgo experimental demostraría que este planteamiento es erróneo?`
+¿Qué hallazgo experimental demostraría que esta tesis es incorrecta?`
   );
 
   const [activeTab, setActiveTab] = useState<'write' | 'preview'>('write');
@@ -64,12 +68,12 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
     setValidationError(null);
 
     if (!title.trim()) {
-      setValidationError('Por favor ingresa un título para tu tesis.');
+      setValidationError('Por favor ingresa un título para la nueva tesis.');
       return;
     }
 
-    if (!contentMarkdown.trim() || contentMarkdown.length < 50) {
-      setValidationError('El cuerpo del artículo debe contener al menos 50 caracteres de fundamentación.');
+    if (!contentMarkdown.trim() || contentMarkdown.length < 40) {
+      setValidationError('El cuerpo del artículo debe contener al menos 40 caracteres de fundamentación.');
       return;
     }
 
@@ -80,7 +84,7 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
       }
       if (!reasoning.trim() || reasoning.length < 15) {
         setValidationError(
-          'Debes proporcionar una justificación argumental de al menos 15 caracteres (1-2 oraciones explicando por qué tu texto apoya, contradice o amplía este fragmento).'
+          'Debes proporcionar la Justificación lógica de la cita (1-2 frases explicando por qué tu texto apoya, contradice o amplía este fragmento).'
         );
         return;
       }
@@ -102,25 +106,26 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
-      // Compute cryptographic SHA-256 content hash
+      // Generación de hash SHA-256 criptográfico para la versión
       const rawPayload = `${title}|${contentMarkdown}|${currentAuthor.id}|${now.toISOString()}`;
       const contentHash = await computeSha256(rawPayload);
 
       const articleId = `art-${slug.substring(0, 30)}-${Date.now().toString(36)}`;
       const versionId = `ver-${articleId}-1.0`;
+      const createdCitationId = `cit-${Date.now()}`;
 
-      // Build outbound citation if quoting
+      // Construcción de cita saliente si hay fragmento anclado
       const citationsOutbound: Citation[] = [];
       if (hasPinnedQuote && targetArticleId) {
         citationsOutbound.push({
-          id: `cit-${Date.now()}`,
+          id: createdCitationId,
           sourceArticleId: articleId,
           sourceArticleSlug: slug,
           sourceArticleTitle: title,
           sourceVersionId: versionId,
           sourceVersionHash: contentHash,
           sourceAuthorName: currentAuthor.name,
-          sourceAuthorHandle: currentAuthor.handle,
+          sourceAuthorHandle: customHandle,
           targetArticleId,
           targetArticleSlug: targetArticleId,
           targetArticleTitle,
@@ -139,16 +144,20 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
         slug,
         title,
         subtitle: subtitle || 'Tesis técnica publicada en el protocolo Chen.',
-        author: currentAuthor,
+        author: {
+          ...currentAuthor,
+          handle: customHandle,
+          githubUser: isGithubVerified ? customHandle : undefined,
+        },
         license: 'CC BY-SA 4.0',
         epistemicStatus,
         epistemicNote:
           epistemicNote ||
           (epistemicStatus === 'fact'
-            ? 'Demostración o hecho verificado empíricamente.'
+            ? 'Demostración deductiva o hecho verificado empíricamente.'
             : epistemicStatus === 'hypothesis'
-            ? 'Hipótesis de trabajo sometida a refutación abierta.'
-            : 'Ensayo reflexivo y análisis de perspectiva.'),
+            ? 'Hipótesis sometida a refutación pública abierta.'
+            : 'Ensayo reflexivo y análisis conceptual.'),
         currentVersionNumber: 'v1.0',
         currentVersionHash: contentHash,
         versions: [
@@ -158,7 +167,7 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
             contentHash,
             date: dateString,
             authorName: currentAuthor.name,
-            reason: 'Publicación original inmutable en el protocolo.',
+            reason: 'Publicación original inmutable en el protocolo Chen.',
             contentMarkdown,
           },
         ],
@@ -170,10 +179,10 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
         citedByInbound: [],
       };
 
-      onPublishSuccess(newArticle);
+      onPublishSuccess(newArticle, hasPinnedQuote ? targetArticleId : undefined, createdCitationId);
     } catch (err) {
       console.error(err);
-      setValidationError('Ocurrió un error al calcular el hash de versión.');
+      setValidationError('Ocurrió un error al calcular el hash inmutable de la versión.');
     } finally {
       setIsSubmitting(false);
     }
@@ -181,150 +190,139 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12 space-y-8">
-      {/* Header */}
+      {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-200 dark:border-stone-800">
         <div>
           <span className="font-mono text-xs uppercase tracking-wider text-teal-700 dark:text-teal-400 font-semibold">
-            Editor de Tesis y Réplicas
+            Editor de Publicación Inmutable
           </span>
           <h1 className="font-serif text-2xl sm:text-3xl font-bold text-stone-900 dark:text-stone-100">
             {hasPinnedQuote ? 'Publicar Réplica Argumental Conectada' : 'Publicar Nueva Tesis en Markdown'}
           </h1>
         </div>
 
-        {/* Identity selector */}
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-stone-500">Firmando como:</span>
-          <select
-            value={currentAuthor.id}
-            onChange={(e) => {
-              const a = authors.find((x) => x.id === e.target.value);
-              if (a) onSwitchAuthor(a);
-            }}
-            className="p-1.5 rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-medium"
-          >
-            {authors.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.isErased ? a.handle : `${a.name} (@${a.handle})`}
-              </option>
-            ))}
-          </select>
-        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-xs font-mono text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 underline cursor-pointer"
+        >
+          &larr; Cancelar y volver
+        </button>
       </div>
 
-      {/* Validation Error banner */}
+      {/* Banner de error de validación */}
       {validationError && (
         <div role="alert" className="p-4 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-xs text-rose-900 dark:text-rose-200 font-sans">
           <strong>Error de validación:</strong> {validationError}
         </div>
       )}
 
-      {/* 1. TARJETA DE EVIDENCIA ANCLADA (Si viene de "Citar fragmento") */}
+      {/* 1. TARJETA DE EVIDENCIA ANCLADA (SI PROVIENE DE SELECCIÓN DE TEXTO) */}
       {hasPinnedQuote ? (
-        <div className="p-5 rounded-lg border-2 border-teal-600/70 bg-teal-50/40 dark:bg-teal-950/20 space-y-4">
+        <div className="p-5 rounded-lg border-2 border-teal-600 bg-teal-50/40 dark:bg-teal-950/20 space-y-4 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-teal-900 dark:text-teal-300 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-teal-600"></span>
-              Fragmento Fuente Anclado por Criptografía
+              Tarjeta de Evidencia Anclada (Bloqueo Criptográfico)
             </span>
             <div className="flex items-center gap-2">
               <span className="font-mono text-[11px] text-stone-500">
-                Hash: #{targetVersionHash.substring(0, 10)}...
+                Hash Fuente: #{targetVersionHash.substring(0, 10)}...
               </span>
               <button
                 type="button"
                 onClick={() => setHasPinnedQuote(false)}
-                className="text-[11px] font-mono text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 underline"
+                className="text-[11px] font-mono text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 underline cursor-pointer"
               >
-                (Desvincular cita y publicar como tesis libre)
+                (Desvincular cita)
               </button>
             </div>
           </div>
 
-          <div className="text-xs font-sans text-stone-600 dark:text-stone-400">
+          <div className="text-xs font-sans text-stone-700 dark:text-stone-300">
             Artículo original: <strong>{targetArticleTitle}</strong> por <strong>{targetAuthorName}</strong>
           </div>
 
-          <blockquote className="font-serif italic text-sm sm:text-base text-stone-900 dark:text-stone-100 border-l-4 border-teal-600 pl-4 py-1">
+          <blockquote className="font-serif italic text-sm sm:text-base text-stone-900 dark:text-stone-100 border-l-4 border-teal-600 pl-4 py-1.5 bg-white/60 dark:bg-black/20 rounded-r">
             «{quotedSnippet}»
           </blockquote>
 
-          {/* 2. SELECTOR OBLIGATORIO DE POSTURA ARGUMENTAL */}
+          {/* Selector Obligatorio de las 3 Relaciones Canónicas */}
           <div className="space-y-2 pt-2 border-t border-teal-200/60 dark:border-teal-900/60">
             <label className="block font-mono text-xs font-bold uppercase text-stone-800 dark:text-stone-200">
               Postura Argumental Obligatoria:
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* [+ APOYA] */}
+              {/* [ + Apoya ] */}
               <button
                 type="button"
                 onClick={() => setRelation('supports')}
-                className={`p-3 rounded-lg border text-left transition-all ${
+                className={`p-3.5 rounded-lg border text-left transition-all cursor-pointer ${
                   relation === 'supports'
-                    ? 'border-emerald-600 bg-emerald-100/80 dark:bg-emerald-950/80 ring-2 ring-emerald-500'
+                    ? 'border-emerald-600 bg-emerald-100/80 dark:bg-emerald-950/80 ring-2 ring-emerald-500 shadow-xs'
                     : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:bg-stone-50'
                 }`}
               >
                 <div className="font-mono text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                  [+ APOYA]
+                  [ + Apoya ]
                 </div>
                 <p className="text-[11px] text-stone-600 dark:text-stone-400 mt-1 leading-snug">
-                  Aporta datos empíricos, pruebas formales o deducciones compatibles.
+                  Aporta datos empíricos, deducciones deductivas o pruebas formales compatibles.
                 </p>
               </button>
 
-              {/* [- CONTRADICE] */}
+              {/* [ - Contradice ] */}
               <button
                 type="button"
                 onClick={() => setRelation('contradicts')}
-                className={`p-3 rounded-lg border text-left transition-all ${
+                className={`p-3.5 rounded-lg border text-left transition-all cursor-pointer ${
                   relation === 'contradicts'
-                    ? 'border-rose-600 bg-rose-100/80 dark:bg-rose-950/80 ring-2 ring-rose-500'
+                    ? 'border-rose-600 bg-rose-100/80 dark:bg-rose-950/80 ring-2 ring-rose-500 shadow-xs'
                     : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:bg-stone-50'
                 }`}
               >
                 <div className="font-mono text-xs font-bold text-rose-800 dark:text-rose-300">
-                  [- CONTRADICE]
+                  [ - Contradice ]
                 </div>
                 <p className="text-[11px] text-stone-600 dark:text-stone-400 mt-1 leading-snug">
-                  Identifica contraejemplos, fallos lógicos o refutaciones directas.
+                  Identifica contraejemplos, fallos lógicos o refutaciones empíricas directas.
                 </p>
               </button>
 
-              {/* [→ AMPLÍA] */}
+              {/* [ → Amplía ] */}
               <button
                 type="button"
                 onClick={() => setRelation('extends')}
-                className={`p-3 rounded-lg border text-left transition-all ${
+                className={`p-3.5 rounded-lg border text-left transition-all cursor-pointer ${
                   relation === 'extends'
-                    ? 'border-teal-600 bg-teal-100/80 dark:bg-teal-950/80 ring-2 ring-teal-500'
+                    ? 'border-teal-600 bg-teal-100/80 dark:bg-teal-950/80 ring-2 ring-teal-500 shadow-xs'
                     : 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:bg-stone-50'
                 }`}
               >
                 <div className="font-mono text-xs font-bold text-teal-800 dark:text-teal-300">
-                  [→ AMPLÍA]
+                  [ → Amplía ]
                 </div>
                 <p className="text-[11px] text-stone-600 dark:text-stone-400 mt-1 leading-snug">
-                  Extiende el marco teórico a nuevos dominios o aclara definiciones límite.
+                  Extiende el marco teórico a nuevos dominios o precisa definiciones límite.
                 </p>
               </button>
             </div>
           </div>
 
-          {/* 3. JUSTIFICACIÓN EPISTÉMICA OBLIGATORIA */}
+          {/* Campo de Justificación Lógica Obligatoria */}
           <div className="space-y-1.5 pt-2">
             <label
               htmlFor="reasoning-input"
               className="block font-mono text-xs font-bold uppercase text-stone-800 dark:text-stone-200"
             >
-              Justificación Epistémica Obligatoria (1-2 oraciones):
+              Justificación lógica de la cita (1-2 frases explicando por qué tu texto apoya, contradice o amplía este fragmento):
             </label>
             <textarea
               id="reasoning-input"
               rows={2}
               value={reasoning}
               onChange={(e) => setReasoning(e.target.value)}
-              placeholder="Explica sintéticamente qué aporta tu texto frente a este fragmento citado (ej: 'El contraejemplo de Castro-Liskov demuestra que bajo sincronía débil el consenso determinista sí es posible')..."
+              placeholder="Ejemplo: 'La tesis holista de Duhem demuestra que ante un fallo experimental ¬P no se deduce la falsedad de la teoría principal sino del conjunto auxiliar'..."
               className="w-full p-2.5 rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-xs sm:text-sm font-sans text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
@@ -336,28 +334,68 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
           </span>
           <button
             type="button"
-            onClick={() => onCancel()}
-            className="font-mono text-teal-700 dark:text-teal-300 hover:underline"
+            onClick={onCancel}
+            className="font-mono text-teal-700 dark:text-teal-300 hover:underline cursor-pointer"
           >
             &larr; Volver al lector para citar un fragmento
           </button>
         </div>
       )}
 
-      {/* 4. FORMULARIO PRINCIPAL DE ARTÍCULO */}
+      {/* 2. FORMULARIO EDITORIAL DEL ARTÍCULO */}
       <div className="space-y-6">
+        {/* Identidad de Autor y Toggle de Verificación GitHub */}
+        <div className="p-4 rounded-lg bg-stone-50 dark:bg-[#13151A] border border-stone-200 dark:border-stone-800 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <label className="font-mono text-xs font-bold uppercase text-stone-700 dark:text-stone-300">
+              Identidad de Autoría y Verificación:
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsGithubVerified(!isGithubVerified)}
+              className="text-xs font-mono text-teal-700 dark:text-teal-400 hover:underline flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>{isGithubVerified ? '✓ GitHub OAuth Simulado (Verificado)' : '○ Conexión anónima/sin verificar'}</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="block text-stone-500 mb-1">Nombre Civil o Pseudónimo:</label>
+              <input
+                type="text"
+                value={currentAuthor.name}
+                disabled
+                className="w-full p-2 rounded border border-stone-300 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-stone-500 mb-1">Handle de Usuario:</label>
+              <div className="flex items-center">
+                <span className="p-2 bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-300 rounded-l border border-r-0 border-stone-300 dark:border-stone-700 font-mono">@</span>
+                <input
+                  type="text"
+                  value={customHandle}
+                  onChange={(e) => setCustomHandle(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                  className="w-full p-2 rounded-r border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-mono"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Título y Subtítulo */}
         <div className="space-y-4">
           <div>
             <label htmlFor="title-input" className="block font-mono text-xs uppercase font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              Título de la Tesis o Artículo:
+              Título de la Tesis:
             </label>
             <input
               id="title-input"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ej: Teorema de imposibilidad en redes no confiables..."
+              placeholder="Ej: La tesis holista como objeción al falsacionismo ingenuo..."
               className="w-full p-3 rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 font-serif text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
@@ -371,13 +409,13 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
               type="text"
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
-              placeholder="Ej: Análisis formal del resultado y sus límites prácticos en entornos asíncronos..."
+              placeholder="Ej: Análisis formal de por qué ninguna conjetura se somete a prueba en aislamiento..."
               className="w-full p-2.5 rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 font-sans text-xs sm:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
         </div>
 
-        {/* Estado Epistémico */}
+        {/* Selector de Estado Epistémico */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block font-mono text-xs uppercase font-semibold text-stone-700 dark:text-stone-300 mb-1">
@@ -386,24 +424,24 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
             <select
               value={epistemicStatus}
               onChange={(e) => setEpistemicStatus(e.target.value as EpistemicStatus)}
-              className="w-full p-2.5 rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 font-sans text-xs sm:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full p-2.5 rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 font-sans text-xs sm:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-teal-500 cursor-pointer"
             >
-              <option value="fact">Hecho formal o empírico (demostración / datos)</option>
-              <option value="hypothesis">Hipótesis de trabajo (sometida a falsación)</option>
-              <option value="opinion">Ensayo u opinión reflexiva</option>
+              <option value="fact">[ Hecho ] Formal / Demostración / Datos empíricos</option>
+              <option value="hypothesis">[ Hipótesis ] Sometida a refutación abierta</option>
+              <option value="opinion">[ Opinión ] Ensayo conceptual o reflexivo</option>
             </select>
           </div>
 
           <div>
             <label htmlFor="epistemic-note" className="block font-mono text-xs uppercase font-semibold text-stone-700 dark:text-stone-300 mb-1">
-              Condición de falsabilidad / Nota de rigor:
+              Condición de falsabilidad declarada:
             </label>
             <input
               id="epistemic-note"
               type="text"
               value={epistemicNote}
               onChange={(e) => setEpistemicNote(e.target.value)}
-              placeholder="¿Qué hallazgo refutaría este texto? (ej: 'Cota de tiempo demostrada en red con partición')..."
+              placeholder="¿Qué hallazgo refutaría esta tesis?..."
               className="w-full p-2.5 rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 font-sans text-xs sm:text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
@@ -419,7 +457,7 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
               <button
                 type="button"
                 onClick={() => setActiveTab('write')}
-                className={`px-3 py-1 rounded text-xs font-mono font-medium ${
+                className={`px-3 py-1 rounded text-xs font-mono font-medium cursor-pointer ${
                   activeTab === 'write'
                     ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-950 font-bold'
                     : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
@@ -430,7 +468,7 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
               <button
                 type="button"
                 onClick={() => setActiveTab('preview')}
-                className={`px-3 py-1 rounded text-xs font-mono font-medium ${
+                className={`px-3 py-1 rounded text-xs font-mono font-medium cursor-pointer ${
                   activeTab === 'preview'
                     ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-950 font-bold'
                     : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
@@ -469,14 +507,14 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
         </div>
       </div>
 
-      {/* 5. FOOTER DE ACCIONES Y PUBLICACIÓN BAJO CC BY-SA 4.0 */}
+      {/* 3. BOTÓN DE PUBLICACIÓN CON LICENCIA LIBRE CC BY-SA 4.0 */}
       <div className="pt-6 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="text-xs text-stone-500 dark:text-stone-400 font-sans space-y-0.5">
           <p>
-            Al pulsar <strong>«Publicar Tesis Inmutable»</strong> se generará un hash SHA-256 criptográfico para la versión <code className="font-mono">v1.0</code>.
+            Al pulsar <strong>«Publicar con Licencia Libre (CC BY-SA 4.0)»</strong> se generará el hash criptográfico SHA-256 para la versión <code className="font-mono">v1.0</code>.
           </p>
           <p>
-            El documento se registra bajo licencia perpetua <strong>CC BY-SA 4.0</strong> vinculada al grafo del protocolo.
+            El texto se incorporará de inmediato al grafo de citas bidireccional y se almacenará en el estado local.
           </p>
         </div>
 
@@ -484,7 +522,7 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+            className="px-4 py-2.5 rounded border border-stone-300 dark:border-stone-700 text-xs font-mono text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
           >
             Cancelar
           </button>
@@ -496,7 +534,7 @@ Detalla las premisas lógicas o los datos observacionales que sustentan tu posic
             className="px-6 py-2.5 rounded bg-teal-800 text-white hover:bg-teal-700 font-mono text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>{isSubmitting ? 'Calculando Hash SHA-256...' : 'Publicar Tesis Inmutable (CC BY-SA)'}</span>
+            <span>{isSubmitting ? 'Calculando Hash...' : 'Publicar con Licencia Libre (CC BY-SA 4.0)'}</span>
           </button>
         </div>
       </div>

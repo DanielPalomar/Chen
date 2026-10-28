@@ -2,23 +2,22 @@ import { Article, Author, ModerationAuditLog, Citation } from '../types';
 import { INITIAL_ARTICLES, INITIAL_AUTHORS, INITIAL_AUDIT_LOGS } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  ARTICLES: 'chen_v1_articles',
-  AUTHORS: 'chen_v1_authors',
-  AUDIT_LOGS: 'chen_v1_audit_logs',
-  CURRENT_USER_ID: 'chen_v1_current_user_id',
+  ARTICLES: 'chen_v1_articles_nuclear',
+  AUTHORS: 'chen_v1_authors_nuclear',
+  AUDIT_LOGS: 'chen_v1_audit_logs_nuclear',
   THEME: 'chen_theme_mode',
 };
 
-// Deterministic fast SHA-256 simulation in JS for client-side hashing without external deps
+// Deterministic fast SHA-256 computation in JS without external dependencies
 export async function computeSha256(text: string): Promise<string> {
   if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
-  // Fallback hash
+  // Deterministic fallback hash
   let hash = 0;
   for (let i = 0; i < text.length; i++) {
     const char = text.charCodeAt(i);
@@ -38,7 +37,7 @@ export function getStoredArticles(): Article[] {
     }
     return JSON.parse(raw);
   } catch (e) {
-    console.error('Error reading stored articles', e);
+    console.error('Error al leer artículos en almacenamiento', e);
     return INITIAL_ARTICLES;
   }
 }
@@ -48,7 +47,7 @@ export function saveStoredArticles(articles: Article[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(articles));
   } catch (e) {
-    console.error('Error saving articles', e);
+    console.error('Error al guardar artículos', e);
   }
 }
 
@@ -62,7 +61,7 @@ export function getStoredAuthors(): Author[] {
     }
     return JSON.parse(raw);
   } catch (e) {
-    console.error('Error reading stored authors', e);
+    console.error('Error al leer autores', e);
     return INITIAL_AUTHORS;
   }
 }
@@ -72,7 +71,7 @@ export function saveStoredAuthors(authors: Author[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.AUTHORS, JSON.stringify(authors));
   } catch (e) {
-    console.error('Error saving authors', e);
+    console.error('Error al guardar autores', e);
   }
 }
 
@@ -86,7 +85,7 @@ export function getStoredAuditLogs(): ModerationAuditLog[] {
     }
     return JSON.parse(raw);
   } catch (e) {
-    console.error('Error reading stored audit logs', e);
+    console.error('Error al leer registros de auditoría', e);
     return INITIAL_AUDIT_LOGS;
   }
 }
@@ -96,7 +95,7 @@ export function saveStoredAuditLogs(logs: ModerationAuditLog[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(logs));
   } catch (e) {
-    console.error('Error saving audit logs', e);
+    console.error('Error al guardar registros de auditoría', e);
   }
 }
 
@@ -114,9 +113,9 @@ export function resetAllToInitial(): { articles: Article[]; authors: Author[]; a
 }
 
 /**
- * Simulates GDPR Article 17 (Right to Erasure) on an author without breaking citations or version history.
- * - PII (name, email, githubUser, orcidId) is wiped and replaced by an immutable cryptographic surrogate `anon-[hash]`
- * - The article texts, SHA-256 version hashes, and inbound/outbound citations are preserved intact.
+ * Simula el borrado RGPD (Art. 17 - Derecho al Olvido) sin romper citas ni hashes de versión.
+ * Sustituye la PII por el formato exacto requerido:
+ * "Autor Retirado [Anonimizado] (anon-8f3a9c...)"
  */
 export function simulateGdprErasure(authorId: string): {
   updatedAuthors: Author[];
@@ -126,7 +125,7 @@ export function simulateGdprErasure(authorId: string): {
   const authors = getStoredAuthors();
   const articles = getStoredArticles();
 
-  const authorIndex = authors.findIndex(a => a.id === authorId);
+  const authorIndex = authors.findIndex((a) => a.id === authorId);
   if (authorIndex === -1) {
     return { updatedAuthors: authors, updatedArticles: articles, erasedAuthor: null };
   }
@@ -136,13 +135,14 @@ export function simulateGdprErasure(authorId: string): {
     targetAuthor.id.split('').reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0)
   ).toString(16).substring(0, 8);
   const anonIdentifier = `anon-${shortHash}`;
+  const anonDisplayName = `Autor Retirado [Anonimizado] (${anonIdentifier})`;
 
   const updatedAuthor: Author = {
     ...targetAuthor,
-    name: `Investigador Anonimizado [RGPD Art. 17 · ${anonIdentifier}]`,
+    name: anonDisplayName,
     handle: anonIdentifier,
-    email: `${anonIdentifier}@anonymized.chen.local`,
-    role: 'Autor Anonimizado según Derecho al Olvido (RGPD UE)',
+    email: `${anonIdentifier}@anonimizado.local`,
+    role: 'Autor Retirado bajo Derecho al Olvido (RGPD Art. 17)',
     githubUser: undefined,
     orcidId: undefined,
     avatarUrl: undefined,
@@ -154,8 +154,8 @@ export function simulateGdprErasure(authorId: string): {
   const updatedAuthors = [...authors];
   updatedAuthors[authorIndex] = updatedAuthor;
 
-  // Update articles: anonymize author in articles, keep contentHash and versions untouched
-  const updatedArticles = articles.map(art => {
+  // Actualizar artículos: anonimiza el autor preservando el texto, versiones y hashes
+  const updatedArticles = articles.map((art) => {
     let modified = false;
     let author = art.author;
     if (author.id === authorId) {
@@ -163,26 +163,26 @@ export function simulateGdprErasure(authorId: string): {
       modified = true;
     }
 
-    // Update citedByInbound
-    const citedByInbound = art.citedByInbound.map(cit => {
+    // Actualizar citas entrantes preservando el grafo
+    const citedByInbound = art.citedByInbound.map((cit) => {
       if (cit.sourceAuthorHandle === targetAuthor.handle || cit.sourceAuthorName === targetAuthor.name) {
         modified = true;
         return {
           ...cit,
-          sourceAuthorName: updatedAuthor.name,
-          sourceAuthorHandle: updatedAuthor.handle,
+          sourceAuthorName: anonDisplayName,
+          sourceAuthorHandle: anonIdentifier,
         };
       }
       return cit;
     });
 
-    // Update citationsOutbound
-    const citationsOutbound = art.citationsOutbound.map(cit => {
+    // Actualizar citas salientes
+    const citationsOutbound = art.citationsOutbound.map((cit) => {
       if (cit.targetAuthorName === targetAuthor.name) {
         modified = true;
         return {
           ...cit,
-          targetAuthorName: updatedAuthor.name,
+          targetAuthorName: anonDisplayName,
         };
       }
       return cit;
