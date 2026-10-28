@@ -3,150 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chen — Protocolo de Argumentación Abierta</title>
-    <meta name="description" content="Protocolo de publicación técnica y ensayística donde cada texto se integra en una red de argumentación verificable mediante citas bidireccionales inmutables." />
-    <meta property="og:title" content="Chen — Protocolo de Argumentación Abierta" />
-    <meta property="og:description" content="Red de argumentación abierta con citas funcionales [+ Apoya], [- Contradice] y [→ Amplía] sin algoritmos de indignación ni rastreo." />
+    <title>Chen — Protocolo de Publicación y Argumentación Abierta</title>
+    <meta name="description" content="Plataforma de publicación técnica y ensayística con citas funcionales bidireccionales [+ Apoya], [- Contradice] y [→ Amplía]." />
+    <meta property="og:title" content="Chen — Protocolo de Publicación y Argumentación Abierta" />
+    <meta property="og:description" content="Red de conocimiento abierto con citas argumentativas inmutables sin algoritmos de engagement ni rastreo." />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#0f766e" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <!-- Cero conexiones externas: Cero Google Fonts, Cero CDN de terceros, Cero rastreo -->
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
-    <link rel="apple-touch-icon" href="/icon-192.svg" />
-
-    <!-- Schema.org JSON-LD para SEO y accesibilidad -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "Chen — Protocolo de Argumentación Abierta",
-      "description": "Red de conocimiento abierto donde las ideas se conectan por citas semánticas y evidencia deductiva, sin algoritmos de popularidad ni publicidad.",
-      "url": "https://chen-conocimiento-libre.org",
-      "inLanguage": "es",
-      "license": "https://creativecommons.org/licenses/by-sa/4.0/"
-    }
-    </script>
+    <meta name="theme-color" content="#141413" />
   </head>
-  <body class="antialiased selection:bg-teal-500/20 selection:text-teal-900">
-    <!-- Enlace de salto de accesibilidad (WCAG 2.1 AAA) -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:p-3 focus:bg-teal-900 focus:text-white focus:rounded focus:outline-none">
-      Saltar al contenido principal
-    </a>
-
-    <!-- Contenedor raíz donde React monta limpiamente sin duplicados estáticos exteriores -->
+  <body class="bg-[#FBF9F5] text-[#141413] antialiased">
     <div id="root">
-      <header role="banner" class="border-b border-stone-200 bg-white/95 px-4 py-4 text-stone-900">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="font-serif text-xl font-bold tracking-tight text-teal-800">Chen</span>
-            <span class="text-xs font-mono uppercase text-stone-500">· Protocolo de Argumentación Abierta</span>
-          </div>
-          <nav role="navigation" aria-label="Navegación estática">
-            <ul class="flex items-center gap-4 text-xs font-medium text-stone-700">
-              <li><a href="#main-content" class="hover:underline">Explorar Artículos</a></li>
-              <li><a href="#demo-title" class="hover:underline">Grafo de Citas</a></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <main id="main-content" role="main" class="max-w-4xl mx-auto px-4 py-8 space-y-12">
-        <noscript>
-          <div role="alert" class="p-4 rounded-lg bg-amber-50 border border-amber-300 text-amber-950 text-xs">
-            <strong>Modo sin JavaScript activo:</strong> Chen está diseñado para ser 100% accesible y legible con navegación estática pura, sin rastreo y con mínimo consumo de ancho de banda.
-          </div>
-        </noscript>
-
-        <!-- Hero Section Semántico -->
-        <section aria-labelledby="hero-title" class="space-y-4 pb-8 border-b border-stone-200">
-          <div class="text-xs font-mono font-semibold uppercase tracking-wider text-teal-800">
-            Protocolo de Argumentación Abierta · Sin Algoritmos de Popularidad
-          </div>
-          <h1 id="hero-title" class="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 leading-tight">
-            Internet ha resuelto la distribución del texto, pero ha roto la conversación intelectual.
-          </h1>
-          <p class="font-serif text-base text-stone-700 leading-relaxed max-w-2xl">
-            Chen es el protocolo de publicación técnica y ensayística donde cada texto se integra en una red de argumentación verificable. Cada tesis se conecta directamente con la evidencia mediante tres relaciones lógicas canónicas: 
-            <strong class="text-emerald-800">[ + Apoya ]</strong>, 
-            <strong class="text-rose-800">[ - Contradice ]</strong> y 
-            <strong class="text-teal-800">[ → Amplía ]</strong>.
-          </p>
-        </section>
-
-        <!-- Mockup Visual con las 3 Relaciones Lógicas Canónicas -->
-        <section aria-labelledby="demo-title" class="p-6 rounded-xl border border-stone-300 bg-stone-50/50 space-y-6">
-          <div class="flex items-center justify-between pb-3 border-b border-stone-200">
-            <h2 id="demo-title" class="text-xs font-mono font-bold uppercase tracking-wider text-stone-600">
-              Anatomía de una Cita con Función (3 Relaciones Canónicas)
-            </h2>
-            <span class="px-2 py-0.5 rounded font-mono text-[11px] font-semibold bg-amber-100 text-amber-900 border border-amber-300">
-              [ Estado Epistémico: Hipótesis ]
-            </span>
-          </div>
-
-          <article class="p-4 rounded-lg bg-white border border-stone-200 space-y-3 shadow-xs">
-            <header class="flex items-center justify-between text-xs text-stone-500">
-              <span class="font-semibold text-stone-800">Dra. Elena Vasconcelos · Epistemología</span>
-              <time datetime="2026-10-28">28 Octubre 2026</time>
-            </header>
-            <p class="font-serif text-sm text-stone-900 leading-relaxed">
-              «Ninguna cantidad de cisnes blancos observados puede justificar deductivamente que todos los cisnes son blancos; la observación de un único cisne negro basta para refutarla de forma concluyente.»
-            </p>
-          </article>
-
-          <!-- 3 Conexiones Lógicas Estandarizadas -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- 1. Apoya -->
-            <div class="p-3.5 rounded-lg border-l-4 border-emerald-600 bg-emerald-50/70 border border-emerald-200 space-y-1.5 text-xs text-stone-800">
-              <div class="flex items-center justify-between font-mono font-bold text-emerald-900">
-                <span>[ + Apoya ]</span>
-                <span class="text-[10px] text-emerald-700 font-normal">Deducción Formal</span>
-              </div>
-              <p class="font-serif italic text-stone-900">
-                «La asimetría lógica entre verificabilidad y refutabilidad: las teorías nunca son verificables, solo corroboradas provisionalmente.»
-              </p>
-              <span class="block text-[11px] text-stone-600 font-medium">Karl Popper (1934) — Logik der Forschung</span>
-            </div>
-
-            <!-- 2. Contradice -->
-            <div class="p-3.5 rounded-lg border-l-4 border-rose-600 bg-rose-50/70 border border-rose-200 space-y-1.5 text-xs text-stone-800">
-              <div class="flex items-center justify-between font-mono font-bold text-rose-900">
-                <span>[ - Contradice ]</span>
-                <span class="text-[10px] text-rose-700 font-normal">Tesis Holista</span>
-              </div>
-              <p class="font-serif italic text-stone-900">
-                «Una hipótesis nunca se somete a contraste de forma aislada; siempre se refuta un sistema entero de supuestos auxiliares.»
-              </p>
-              <span class="block text-[11px] text-stone-600 font-medium">Pierre Duhem &amp; W.V.O. Quine (1951)</span>
-            </div>
-
-            <!-- 3. Amplía -->
-            <div class="p-3.5 rounded-lg border-l-4 border-teal-600 bg-teal-50/70 border border-teal-200 space-y-1.5 text-xs text-stone-800">
-              <div class="flex items-center justify-between font-mono font-bold text-teal-900">
-                <span>[ → Amplía ]</span>
-                <span class="text-[10px] text-teal-700 font-normal">Programas de Investigación</span>
-              </div>
-              <p class="font-serif italic text-stone-900">
-                «La ciencia no progresa por refutaciones aisladas, sino mediante programas de investigación con un núcleo firme protegido por un cinturón heurístico modificable.»
-              </p>
-              <span class="block text-[11px] text-stone-600 font-medium">Imre Lakatos (1970)</span>
-            </div>
-          </div>
-        </section>
-      </main>
+      <div style="font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; color: #141413; background-color: #FBF9F5; padding: 24px; text-align: center;">
+        <h1 style="font-size: 28px; font-weight: 900; margin-bottom: 8px; font-family: Charter, Georgia, serif;">Chen</h1>
+        <p style="font-size: 13px; color: #605F5B; font-family: ui-monospace, monospace;">Iniciando Protocolo de Publicación y Argumentación Abierta...</p>
+      </div>
     </div>
-
-    <!-- Script de aplicación React SPA -->
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator && window.location.protocol === 'https:') {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
-      }
-    </script>
   </body>
 </html>
