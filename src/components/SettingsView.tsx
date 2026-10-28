@@ -15,6 +15,8 @@ import {
   Eye,
   Maximize2,
   Trash2,
+  Feather,
+  Sparkles,
 } from 'lucide-react';
 import { UserPreferences, CLOSED_LICENSES } from '../types';
 import {
@@ -163,6 +165,99 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </section>
 
+        {/* Interruptor de Modo Visual y Modo Ligero */}
+        <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 space-y-4">
+          <div className="space-y-0.5">
+            <h3 className="font-serif text-sm font-semibold text-[var(--text-primary)]">
+              Experiencia Visual y Rendimiento
+            </h3>
+            <p className="text-[11px] text-[var(--text-tertiary)]">
+              Alterna entre la experiencia inmersiva enriquecida con Tailwind o el modo plano de máxima velocidad.
+            </p>
+          </div>
+
+          {/* Interruptor dedicado Modo Visual */}
+          <div className="flex items-center justify-between p-3.5 rounded-lg border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/40 dark:bg-indigo-950/20">
+            <div className="space-y-1 pr-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="font-medium text-xs text-[var(--text-primary)]">
+                  Interruptor de Modo Visual
+                </span>
+                {!preferences.ultraLightMode && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono uppercase bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-semibold">
+                    Activo
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                Aplica estilos inmersivos con sombras suaves, tipografías más dinámicas, elevación 3D en tarjetas y espaciado generado con Tailwind. Se desactiva automáticamente al entrar en el Modo Ligero.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!preferences.ultraLightMode}
+              onClick={() => {
+                const nextVisual = preferences.ultraLightMode; // if currently light, turn visual ON
+                onUpdatePreferences({
+                  visualMode: nextVisual,
+                  ultraLightMode: !nextVisual,
+                });
+              }}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                !preferences.ultraLightMode
+                  ? 'bg-indigo-600'
+                  : 'bg-[var(--border-strong)]'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                  !preferences.ultraLightMode ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Selector en tarjetas comparativas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <button
+              onClick={() => onUpdatePreferences({ ultraLightMode: true, visualMode: false })}
+              className={`p-3.5 rounded-lg border text-left flex items-start gap-3 transition-colors ${
+                preferences.ultraLightMode
+                  ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200 font-semibold shadow-xs'
+                  : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Feather className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+              <div className="space-y-1">
+                <span className="block font-medium">Modo Ligero (Ahorro Extremo)</span>
+                <span className="text-[11px] font-normal opacity-80 block">
+                  Sin animaciones, sin sombras pesadas, sin desenfoques GPU. Desactiva automáticamente el Modo Visual para garantizar mínimo consumo.
+                </span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => onUpdatePreferences({ ultraLightMode: false, visualMode: true })}
+              className={`p-3.5 rounded-lg border text-left flex items-start gap-3 transition-colors ${
+                !preferences.ultraLightMode
+                  ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-950 dark:text-indigo-200 font-semibold shadow-xs'
+                  : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Sparkles className="h-4 w-4 shrink-0 mt-0.5 text-indigo-600 dark:text-indigo-400" />
+              <div className="space-y-1">
+                <span className="block font-medium">Modo Visual (Diseño Inmersivo)</span>
+                <span className="text-[11px] font-normal opacity-80 block">
+                  Atmósfera con aura ambiental, elevación 3D en tarjetas, sombras cromáticas suaves y tipografía dinámica con espaciado Tailwind.
+                </span>
+              </div>
+            </button>
+          </div>
+        </section>
+
         {/* Accessibility & Typography Controls */}
         <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 space-y-4">
           <div className="space-y-0.5">
@@ -203,40 +298,93 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 sm:col-span-2">
               <label className="block font-medium text-[var(--text-primary)]">
-                Familia tipográfica:
+                Familia tipográfica de lectura:
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   onClick={() => onUpdatePreferences({ fontFamily: 'serif' })}
-                  className={`py-1.5 px-2 rounded border font-serif text-xs transition-colors ${
+                  className={`p-2 rounded border font-serif text-xs text-left transition-colors ${
                     preferences.fontFamily === 'serif'
-                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent shadow-xs'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  Serif
+                  <span className="font-semibold block">Newsreader</span>
+                  <span className="text-[10px] opacity-80 block">Serif editorial clásica</span>
                 </button>
+
+                <button
+                  onClick={() => onUpdatePreferences({ fontFamily: 'literata' })}
+                  className={`p-2 rounded border font-serif text-xs text-left transition-colors ${
+                    preferences.fontFamily === 'literata'
+                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent shadow-xs'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <span className="font-semibold block">Literata</span>
+                  <span className="text-[10px] opacity-80 block">Lectura de libros</span>
+                </button>
+
+                <button
+                  onClick={() => onUpdatePreferences({ fontFamily: 'merriweather' })}
+                  className={`p-2 rounded border font-serif text-xs text-left transition-colors ${
+                    preferences.fontFamily === 'merriweather'
+                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent shadow-xs'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <span className="font-semibold block">Merriweather</span>
+                  <span className="text-[10px] opacity-80 block">Serifa robusta</span>
+                </button>
+
                 <button
                   onClick={() => onUpdatePreferences({ fontFamily: 'sans' })}
-                  className={`py-1.5 px-2 rounded border font-sans text-xs transition-colors ${
+                  className={`p-2 rounded border font-sans text-xs text-left transition-colors ${
                     preferences.fontFamily === 'sans'
-                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent shadow-xs'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  Sans
+                  <span className="font-semibold block">Inter</span>
+                  <span className="text-[10px] opacity-80 block">Sans limpia y neutra</span>
                 </button>
+
+                <button
+                  onClick={() => onUpdatePreferences({ fontFamily: 'plex' })}
+                  className={`p-2 rounded border font-sans text-xs text-left transition-colors ${
+                    preferences.fontFamily === 'plex'
+                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent shadow-xs'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <span className="font-semibold block">IBM Plex</span>
+                  <span className="text-[10px] opacity-80 block">Sans técnica</span>
+                </button>
+
+                <button
+                  onClick={() => onUpdatePreferences({ fontFamily: 'atkinson' })}
+                  className={`p-2 rounded border text-xs text-left transition-colors ${
+                    preferences.fontFamily === 'atkinson'
+                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent shadow-xs'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <span className="font-semibold block">Atkinson</span>
+                  <span className="text-[10px] opacity-80 block">Alta legibilidad / Dislexia</span>
+                </button>
+
                 <button
                   onClick={() => onUpdatePreferences({ fontFamily: 'mono' })}
-                  className={`py-1.5 px-2 rounded border font-mono text-xs transition-colors ${
+                  className={`p-2 rounded border font-mono text-xs text-left transition-colors col-span-2 sm:col-span-2 ${
                     preferences.fontFamily === 'mono'
-                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent'
-                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+                      ? 'bg-[var(--action-primary)] text-white font-medium border-transparent shadow-xs'
+                      : 'border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
-                  Mono / Dislexia
+                  <span className="font-semibold block">JetBrains Mono</span>
+                  <span className="text-[10px] opacity-80 block">Monoespaciada limpia para código y pruebas</span>
                 </button>
               </div>
             </div>

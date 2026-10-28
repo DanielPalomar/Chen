@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   Link as LinkIcon,
@@ -14,8 +14,10 @@ import {
   HelpCircle,
   Share2,
 } from 'lucide-react';
-import { Author, Article } from '../types';
+import { Author, Article, EpistemicMedal } from '../types';
 import { VerificationBadge, EpistemicBadge } from './SemanticBadges';
+import { MedalHeaderPill, MedalsShowcase } from './MedalsShowcase';
+import { getAuthorMedals } from '../data/medalsData';
 
 interface AuthorProfileViewProps {
   author: Author;
@@ -32,6 +34,8 @@ export const AuthorProfileView: React.FC<AuthorProfileViewProps> = ({
   onSelectArticle,
   onNavigateArea,
 }) => {
+  const [showMedals, setShowMedals] = useState(false);
+  const authorMedals = getAuthorMedals(author);
   return (
     <div className="max-w-4xl mx-auto space-y-10">
       {/* Back button */}
@@ -221,6 +225,42 @@ export const AuthorProfileView: React.FC<AuthorProfileViewProps> = ({
             </div>
           </div>
         )}
+
+        {/* Epistemic Medals Showcase in Author Card */}
+        <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-[var(--action-primary)]" />
+              <h3 className="font-serif font-bold text-xs sm:text-sm text-[var(--text-primary)]">
+                Medallas e Insignias Epistémicas
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowMedals(!showMedals)}
+              className="text-xs text-[var(--action-primary)] hover:underline font-medium flex items-center gap-1"
+            >
+              <span>{showMedals ? 'Ocultar medallero' : 'Ver medallero completo'}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap pt-0.5">
+            {authorMedals
+              .filter((m) => m.unlocked)
+              .map((medal) => (
+                <MedalHeaderPill
+                  key={medal.id}
+                  medal={medal}
+                  onClick={() => setShowMedals(true)}
+                />
+              ))}
+          </div>
+
+          {showMedals && (
+            <div className="pt-3 border-t border-[var(--border-subtle)]">
+              <MedalsShowcase medals={authorMedals} isOwner={false} />
+            </div>
+          )}
+        </div>
 
         {/* Positive Epistemic Culture Banner */}
         <div className="rounded border border-emerald-500/20 bg-emerald-50/40 dark:bg-emerald-950/20 p-3.5 flex items-start gap-2.5 text-xs">

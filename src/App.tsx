@@ -13,6 +13,8 @@ import {
   PersonalChallenge,
   ThesisAntithesisItem,
   ReportItem,
+  CommunityStudyPath,
+  SavedSnippet,
 } from './types';
 import {
   getStoredArticles,
@@ -37,6 +39,10 @@ import {
   saveStoredThesis,
   getStoredReports,
   saveStoredReports,
+  getStoredStudyPaths,
+  saveStoredStudyPaths,
+  getStoredSnippets,
+  saveStoredSnippets,
 } from './utils/storage';
 import { INITIAL_AUTHORS, INITIAL_AREAS } from './data/initialData';
 import { Header } from './components/Header';
@@ -62,6 +68,8 @@ import { RedLinesView } from './components/RedLinesView';
 import { ReputationExplainerView } from './components/ReputationExplainerView';
 import { SustainabilityView } from './components/SustainabilityView';
 import { SearchView } from './components/SearchView';
+import { KnowledgeMapView } from './components/KnowledgeMapView';
+import { ObsidianSyncModal } from './components/ObsidianSyncModal';
 import { LoginModal } from './components/LoginModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { RssDigestModal } from './components/RssDigestModal';
@@ -76,12 +84,16 @@ export default function App() {
   const [challenges, setChallenges] = useState<PersonalChallenge[]>(getStoredChallenges);
   const [thesisItems, setThesisItems] = useState<ThesisAntithesisItem[]>(getStoredThesis);
   const [reports, setReports] = useState<ReportItem[]>(getStoredReports);
+  const [studyPaths, setStudyPaths] = useState<CommunityStudyPath[]>(getStoredStudyPaths);
+  const [savedSnippets, setSavedSnippets] = useState<SavedSnippet[]>(getStoredSnippets);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(getStoredUser);
   const [preferences, setPreferences] = useState<UserPreferences>(getStoredPreferences);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isRssOpen, setIsRssOpen] = useState(false);
+  const [isObsidianOpen, setIsObsidianOpen] = useState(false);
+  const [obsidianTargetArticle, setObsidianTargetArticle] = useState<Article | undefined>(undefined);
 
   // Persistence
   useEffect(() => {
@@ -121,12 +133,20 @@ export default function App() {
   }, [reports]);
 
   useEffect(() => {
+    saveStoredStudyPaths(studyPaths);
+  }, [studyPaths]);
+
+  useEffect(() => {
+    saveStoredSnippets(savedSnippets);
+  }, [savedSnippets]);
+
+  useEffect(() => {
     saveStoredUser(currentUser);
   }, [currentUser]);
 
   useEffect(() => {
     saveStoredPreferences(preferences);
-    // Sync theme, font, assisted reading, and line focus on <html> element
+    // Sync theme, font, assisted reading, line focus, and ultra-light mode on <html> element
     document.documentElement.setAttribute('data-theme', preferences.theme || 'light');
     document.documentElement.setAttribute('data-font', preferences.fontFamily || 'serif');
     document.documentElement.setAttribute(
@@ -136,6 +156,10 @@ export default function App() {
     document.documentElement.setAttribute(
       'data-line-focus',
       preferences.lineFocus ? 'true' : 'false'
+    );
+    document.documentElement.setAttribute(
+      'data-ultralight',
+      preferences.ultraLightMode ? 'true' : 'false'
     );
   }, [preferences]);
 
@@ -157,7 +181,26 @@ export default function App() {
   };
 
   const handleUpdatePreferences = (updates: Partial<UserPreferences>) => {
-    setPreferences((prev) => ({ ...prev, ...updates }));
+    setPreferences((prev) => {
+      const next = { ...prev, ...updates };
+      // Mutual exclusion between Modo Ligero and Modo Visual
+      if (updates.visualMode === true) {
+        next.ultraLightMode = false;
+      }
+      if (updates.ultraLightMode === true) {
+        next.visualMode = false;
+      }
+      return next;
+    });
+  };
+
+  // Snippet Actions (Save excerpts & citations without saving the whole article)
+  const handleSaveSnippet = (snippet: SavedSnippet) => {
+    setSavedSnippets((prev) => [snippet, ...prev]);
+  };
+
+  const handleDeleteSnippet = (snippetId: string) => {
+    setSavedSnippets((prev) => prev.filter((s) => s.id !== snippetId));
   };
 
   // Article Actions
@@ -389,6 +432,10 @@ export default function App() {
         onSearch={setSearchQuery}
         searchQuery={searchQuery}
         onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenObsidianSync={() => {
+          setObsidianTargetArticle(currentArticle);
+          setIsObsidianOpen(true);
+        }}
       />
 
       {/* Main Content Viewport */}
@@ -405,6 +452,7 @@ export default function App() {
             onNavigateEditor={() => handleNavigate('editor')}
             onNavigateStudyPath={() => handleNavigate('study_path')}
             onNavigateBooks={() => handleNavigate('books')}
+            ultraLightMode={preferences.ultraLightMode}
           />
         )}
 
@@ -424,6 +472,17 @@ export default function App() {
             onSelectArticle={handleSelectArticle}
             onSelectAuthor={handleSelectAuthor}
             onNavigateGapDetail={() => handleNavigate('gaps')}
+          />
+        )}
+
+        {preferences.activeView === 'knowledge_map' && (
+          <KnowledgeMapView
+            articles={articles}
+            areas={INITIAL_AREAS}
+            onSelectArticle={handleSelectArticle}
+            onNavigateArea={(areaId) => {
+              handleNavigate('area_detail', null, null, areaId);
+            }}
           />
         )}
 
@@ -452,6 +511,12 @@ export default function App() {
             onAddFlashcard={handleAddFlashcard}
             onSubmitReport={handleAddReport}
             currentUser={currentUser}
+            savedSnippets={savedSnippets}
+            onSaveSnippet={handleSaveSnippet}
+            onOpenObsidianSync={(art) => {
+              setObsidianTargetArticle(art);
+              setIsObsidianOpen(true);
+            }}
           />
         )}
 
@@ -462,6 +527,7 @@ export default function App() {
             onAddThread={handleAddForumThread}
             onAddReply={handleAddForumReply}
             onRequestLogin={() => setIsLoginModalOpen(true)}
+            onSubmitReport={handleAddReport}
           />
         )}
 
@@ -474,6 +540,7 @@ export default function App() {
             gaps={gaps}
             onAddGap={handleAddGap}
             onAddAnswerToGap={handleAddAnswerToGap}
+            onSubmitReport={handleAddReport}
           />
         )}
 
@@ -491,6 +558,14 @@ export default function App() {
             onReviewCard={handleReviewCard}
             onAddCard={handleAddFlashcard}
             onDeleteCard={handleDeleteCard}
+            studyPaths={studyPaths}
+            onAddStudyPath={(newPath) => setStudyPaths((prev) => [newPath, ...prev])}
+            onUpdateStudyPath={(updated) =>
+              setStudyPaths((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+            }
+            onSelectArticle={handleSelectArticle}
+            onNavigateBooks={() => handleNavigate('books')}
+            currentUser={currentUser}
           />
         )}
 
@@ -535,6 +610,8 @@ export default function App() {
               articles={articles}
               forumThreads={forumThreads}
               gaps={gaps}
+              savedSnippets={savedSnippets}
+              onDeleteSnippet={handleDeleteSnippet}
               onUpdateUser={(updated) => setCurrentUser(updated)}
               onSelectArticle={handleSelectArticle}
               onNavigateForumThread={() => handleNavigate('forum')}
@@ -623,6 +700,11 @@ export default function App() {
         onNavigateAreas={() => handleNavigate('areas')}
         onNavigateRedLines={() => handleNavigate('red_lines')}
         onNavigateReputation={() => handleNavigate('reputation')}
+        onNavigateKnowledgeMap={() => handleNavigate('knowledge_map')}
+        onOpenObsidianSync={() => {
+          setObsidianTargetArticle(currentArticle);
+          setIsObsidianOpen(true);
+        }}
         onOpenRss={() => setIsRssOpen(true)}
       />
 
@@ -648,6 +730,13 @@ export default function App() {
       <RssDigestModal
         isOpen={isRssOpen}
         onClose={() => setIsRssOpen(false)}
+      />
+
+      <ObsidianSyncModal
+        isOpen={isObsidianOpen}
+        onClose={() => setIsObsidianOpen(false)}
+        articles={articles}
+        currentArticle={obsidianTargetArticle || currentArticle}
       />
     </div>
   );

@@ -53,8 +53,7 @@ export const FreeBooksView: React.FC<FreeBooksViewProps> = ({
   }, []);
 
   const topics = useMemo(() => {
-    return [
-      'todos',
+    const set = new Set<string>([
       'Matemáticas',
       'Física',
       'Computación',
@@ -62,20 +61,29 @@ export const FreeBooksView: React.FC<FreeBooksViewProps> = ({
       'Biología',
       'Ciencias Sociales',
       'Literatura',
-    ];
-  }, []);
+      'Sistemas',
+      'Economía',
+    ]);
+    books.forEach((b) => {
+      if (b.topic) set.add(b.topic);
+    });
+    return ['todos', ...Array.from(set)];
+  }, [books]);
 
   const platforms = useMemo(() => {
-    return [
-      'todos',
+    const set = new Set<string>([
       'OpenStax',
       'Proyecto Gutenberg',
       'LibreTexts',
       'MIT OCW',
       'Internet Archive',
       'arXiv',
-    ];
-  }, []);
+    ]);
+    books.forEach((b) => {
+      if (b.sourcePlatform) set.add(b.sourcePlatform);
+    });
+    return ['todos', ...Array.from(set)];
+  }, [books]);
 
   const formats = useMemo(() => {
     return ['todos', 'PDF', 'EPUB', 'Web'];
@@ -382,32 +390,28 @@ export const FreeBooksView: React.FC<FreeBooksViewProps> = ({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredBooks.map((book) => {
             const isCopied = copiedId === book.id;
             return (
               <article
                 key={book.id}
-                className="group relative rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 flex flex-col justify-between transition-all hover:border-[var(--action-primary)]/40 hover:shadow-xs"
-                style={{
-                  borderLeftWidth: '4px',
-                  borderLeftColor: book.coverAccent || 'var(--action-primary)',
-                }}
+                className="group relative rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 flex flex-col justify-between card-elevation space-y-4"
               >
                 <div className="space-y-3">
-                  {/* Category, Language & Platform Top Row */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-[var(--text-primary)] bg-[var(--bg-subtle)] px-2 py-0.5 rounded">
+                  {/* Category, Language & Platform Top Row - Unboxed */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-[var(--text-tertiary)]">
+                      <span className="font-semibold text-[var(--action-primary)]">
                         {book.topic}
                       </span>
-                      <span className="text-[var(--text-tertiary)]">·</span>
+                      <span aria-hidden="true">·</span>
                       <span className="text-[var(--text-secondary)]">
                         {book.language}
                       </span>
                     </div>
 
-                    <span className="font-mono text-[11px] text-[var(--action-primary)] font-medium">
+                    <span className="font-mono text-xs text-[var(--text-tertiary)]">
                       {book.sourcePlatform}
                     </span>
                   </div>

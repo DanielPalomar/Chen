@@ -6,7 +6,7 @@ interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   targetId: string;
-  targetType: 'articulo' | 'comentario' | 'gap';
+  targetType: ReportItem['targetType'];
   targetTitle: string;
   onSubmitReport: (report: ReportItem) => void;
 }
@@ -79,7 +79,10 @@ export const ReportModal: React.FC<ReportModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="p-3 rounded bg-[var(--bg-subtle)] space-y-1">
-              <span className="text-[11px] text-[var(--text-tertiary)] block">Contenido reportado:</span>
+              <div className="flex items-center justify-between text-[11px] text-[var(--text-tertiary)]">
+                <span>Contenido reportado:</span>
+                <span className="font-mono uppercase text-[10px] text-[var(--action-primary)] font-semibold">{targetType}</span>
+              </div>
               <span className="font-serif font-semibold text-xs text-[var(--text-primary)] line-clamp-2">
                 {targetTitle}
               </span>
@@ -91,14 +94,17 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               </label>
               <select
                 value={reason}
-                onChange={(e) => setReason(e.target.value as any)}
-                className="w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-2 text-xs focus:outline-none"
+                onChange={(e) => setReason(e.target.value as ReportItem['reason'])}
+                className="w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-2 text-xs focus:outline-none text-[var(--text-primary)]"
               >
                 <option value="linea_roja">Vulneración de Línea Roja comunitaria</option>
                 <option value="ataque_personal">Ataque personal o ad hominem</option>
                 <option value="plagio">Plagio o copia sin atribución</option>
-                <option value="etiqueta_incorrecta">Etiqueta epistémica engañosa</option>
+                <option value="desinformacion">Desinformación o afirmación sin fundamento</option>
                 <option value="falta_citas">Falta de citas de respaldo indispensables</option>
+                <option value="etiqueta_incorrecta">Etiqueta epistémica engañosa</option>
+                <option value="spam">Spam o autopromoción encubierta</option>
+                <option value="otro">Otro motivo</option>
               </select>
             </div>
 

@@ -8,8 +8,10 @@ import {
   Send,
   ArrowLeft,
   Sparkles,
+  Flag,
 } from 'lucide-react';
-import { ForumThread, ForumReply, UserProfile } from '../types';
+import { ForumThread, ForumReply, UserProfile, ReportItem } from '../types';
+import { ReportModal } from './ReportModal';
 
 interface ForumViewProps {
   threads: ForumThread[];
@@ -17,6 +19,7 @@ interface ForumViewProps {
   onAddThread: (thread: Omit<ForumThread, 'id' | 'date' | 'replies'>) => void;
   onAddReply: (threadId: string, reply: Omit<ForumReply, 'id' | 'date'>) => void;
   onRequestLogin: () => void;
+  onSubmitReport?: (report: ReportItem) => void;
 }
 
 export const ForumView: React.FC<ForumViewProps> = ({
@@ -25,10 +28,12 @@ export const ForumView: React.FC<ForumViewProps> = ({
   onAddThread,
   onAddReply,
   onRequestLogin,
+  onSubmitReport,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [isNewThreadOpen, setIsNewThreadOpen] = useState(false);
+  const [reportModalData, setReportModalData] = useState<{ id: string; title: string; type: 'hilo' | 'comentario' } | null>(null);
 
   // New Thread Form
   const [newTitle, setNewTitle] = useState('');
@@ -104,7 +109,19 @@ export const ForumView: React.FC<ForumViewProps> = ({
               <span className="font-medium text-[var(--action-primary)] font-mono">
                 {activeThread.category}
               </span>
-              <span>{activeThread.date}</span>
+              <div className="flex items-center gap-2.5">
+                <span>{activeThread.date}</span>
+                {onSubmitReport && (
+                  <button
+                    onClick={() => setReportModalData({ id: activeThread.id, title: activeThread.title, type: 'hilo' })}
+                    className="inline-flex items-center gap-1 text-[11px] text-[var(--text-tertiary)] hover:text-rose-600 transition-colors"
+                    title="Reportar este hilo a moderación"
+                  >
+                    <Flag className="h-3 w-3" />
+                    <span>Reportar</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <h1 className="font-serif text-2xl font-bold text-[var(--text-primary)] leading-snug">
@@ -155,7 +172,18 @@ export const ForumView: React.FC<ForumViewProps> = ({
                           </span>
                         )}
                       </div>
-                      <span>{reply.date}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{reply.date}</span>
+                        {onSubmitReport && (
+                          <button
+                            onClick={() => setReportModalData({ id: reply.id, title: `Réplica de ${reply.author}`, type: 'comentario' })}
+                            className="p-1 text-[var(--text-tertiary)] hover:text-rose-600 transition-colors"
+                            title="Reportar esta réplica"
+                          >
+                            <Flag className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p className="font-serif text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-line">
                       {reply.content}
@@ -341,6 +369,18 @@ export const ForumView: React.FC<ForumViewProps> = ({
             </form>
           </div>
         </div>
+      )}
+
+      {/* Report Modal */}
+      {reportModalData && onSubmitReport && (
+        <ReportModal
+          isOpen={true}
+          onClose={() => setReportModalData(null)}
+          targetId={reportModalData.id}
+          targetType={reportModalData.type}
+          targetTitle={reportModalData.title}
+          onSubmitReport={onSubmitReport}
+        />
       )}
     </div>
   );

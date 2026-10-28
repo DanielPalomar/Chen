@@ -15,6 +15,8 @@ interface FooterProps {
   onNavigateAreas: () => void;
   onNavigateRedLines: () => void;
   onNavigateReputation: () => void;
+  onNavigateKnowledgeMap?: () => void;
+  onOpenObsidianSync?: () => void;
   onOpenRss: () => void;
 }
 
@@ -30,6 +32,8 @@ export const Footer: React.FC<FooterProps> = ({
   onNavigateAreas,
   onNavigateRedLines,
   onNavigateReputation,
+  onNavigateKnowledgeMap,
+  onOpenObsidianSync,
   onOpenRss,
 }) => {
   return (
@@ -70,6 +74,12 @@ export const Footer: React.FC<FooterProps> = ({
             >
               <Globe className="h-3 w-3" />
               <span>{t('navRepositories', language)}</span>
+            </button>
+            <button
+              onClick={onNavigateKnowledgeMap}
+              className="hover:text-[var(--action-primary)] hover:underline text-indigo-700 dark:text-indigo-400 font-medium"
+            >
+              Mapa de conocimiento
             </button>
             <button
               onClick={onNavigateForum}
@@ -118,7 +128,7 @@ export const Footer: React.FC<FooterProps> = ({
 
         {/* Data Exports and Software License Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 py-3 border-b border-[var(--border-subtle)] text-xs">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="text-[var(--text-tertiary)]">Exportación soberana de tus datos:</span>
             <button
               onClick={exportAllDataAsJson}
@@ -134,6 +144,14 @@ export const Footer: React.FC<FooterProps> = ({
             >
               <FileText className="h-3 w-3" />
               <span>Exportar artículos (.MD)</span>
+            </button>
+            <span className="text-[var(--border-strong)]">·</span>
+            <button
+              onClick={onOpenObsidianSync}
+              className="hover:text-[var(--action-primary)] hover:underline flex items-center gap-1 text-[11px] font-medium text-indigo-700 dark:text-indigo-400"
+            >
+              <BookOpen className="h-3 w-3" />
+              <span>Bóveda Obsidian ([[wikilinks]])</span>
             </button>
           </div>
 

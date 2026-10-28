@@ -29,9 +29,13 @@ import {
   AlertCircle,
   X,
   Clipboard,
+  ChevronRight,
+  Bookmark,
 } from 'lucide-react';
-import { UserProfile, Article, ForumThread, KnowledgeGap, SupporterRecord } from '../types';
+import { UserProfile, Article, ForumThread, KnowledgeGap, SupporterRecord, EpistemicMedal, SavedSnippet } from '../types';
 import { VerificationBadge, EpistemicBadge, LevelIndicator, LicenseChip } from './SemanticBadges';
+import { MedalsShowcase, MedalHeaderPill } from './MedalsShowcase';
+import { getUserMedals } from '../data/medalsData';
 
 interface UserProfileViewProps {
   currentUser: UserProfile;
@@ -44,6 +48,8 @@ interface UserProfileViewProps {
   onNavigateGap?: (gapId: string) => void;
   onNavigateEditor: () => void;
   onBack: () => void;
+  savedSnippets?: SavedSnippet[];
+  onDeleteSnippet?: (snippetId: string) => void;
 }
 
 const PRESET_BANNERS = [
@@ -72,8 +78,20 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   onNavigateGap,
   onNavigateEditor,
   onBack,
+  savedSnippets = [],
+  onDeleteSnippet,
 }) => {
-  const [activeTab, setActiveTab] = useState<'threads' | 'articles' | 'gaps' | 'donations' | 'community' | 'edit'>('threads');
+  const [activeTab, setActiveTab] = useState<'threads' | 'articles' | 'snippets' | 'gaps' | 'donations' | 'community' | 'medals' | 'edit'>('threads');
+  const [medals, setMedals] = useState<EpistemicMedal[]>(() => getUserMedals(currentUser));
+
+  const handleTogglePinMedal = (medalId: string) => {
+    const updated = medals.map((m) =>
+      m.id === medalId ? { ...m, featured: !m.featured } : m
+    );
+    setMedals(updated);
+    onUpdateUser({ ...currentUser, medals: updated });
+  };
+
   const [isEditing, setIsEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showBannerPicker, setShowBannerPicker] = useState(false);
@@ -109,8 +127,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   const [orcidId, setOrcidId] = useState(currentUser.orcidId || '');
   const [orcidVerified, setOrcidVerified] = useState(currentUser.orcidVerified || false);
   const [linkedinUrl, setLinkedinUrl] = useState(currentUser.linkedinUrl || '');
+  const [linkedinVerified, setLinkedinVerified] = useState(currentUser.linkedinVerified || false);
   const [personalUrl, setPersonalUrl] = useState(currentUser.personalUrl || '');
   const [mastodonUrl, setMastodonUrl] = useState(currentUser.mastodonUrl || '');
+  const [otherWebsites, setOtherWebsites] = useState<{ label: string; url: string }[]>(currentUser.otherWebsites || []);
+  const [newSiteLabel, setNewSiteLabel] = useState('');
+  const [newSiteUrl, setNewSiteUrl] = useState('');
 
   // Donation state
   const [donationsPublic, setDonationsPublic] = useState(currentUser.donationsPublic ?? true);
@@ -160,6 +182,20 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
       g.answers.some((ans) => ans.authorName.toLowerCase() === currentUser.name.toLowerCase())
   );
 
+  const handleAddOtherWebsite = () => {
+    if (!newSiteLabel.trim() || !newSiteUrl.trim()) return;
+    setOtherWebsites((prev) => [
+      ...prev,
+      { label: newSiteLabel.trim(), url: newSiteUrl.trim() },
+    ]);
+    setNewSiteLabel('');
+    setNewSiteUrl('');
+  };
+
+  const handleRemoveOtherWebsite = (index: number) => {
+    setOtherWebsites((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSaveProfile = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const updated: UserProfile = {
@@ -174,8 +210,10 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
       orcidId: orcidId.trim(),
       orcidVerified,
       linkedinUrl: linkedinUrl.trim(),
+      linkedinVerified,
       personalUrl: personalUrl.trim(),
       mastodonUrl: mastodonUrl.trim(),
+      otherWebsites,
       donationsPublic,
       donationsMessage: donationsMessage.trim(),
       donationsGoal: donationsGoal.trim(),
@@ -642,25 +680,80 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
             {linkedinUrl && (
               <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-80">
-                <VerificationBadge verified={false} label="LinkedIn (no verificado)" />
+                <VerificationBadge
+                  verified={linkedinVerified}
+                  label={linkedinVerified ? 'LinkedIn (verificado)' : 'LinkedIn (no verificado)'}
+                />
               </a>
             )}
 
             {personalUrl && (
               <a href={personalUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-80">
-                <VerificationBadge verified={false} label="Web personal (no verificado)" />
+                <VerificationBadge verified={false} label="Web personal" />
               </a>
             )}
 
             {mastodonUrl && (
               <a href={mastodonUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-80">
-                <VerificationBadge verified={false} label="Fediverso (no verificado)" />
+                <VerificationBadge verified={false} label="Fediverso" />
               </a>
             )}
+
+            {otherWebsites.map((site, idx) => (
+              <a
+                key={idx}
+                href={site.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[11px] font-mono text-[var(--text-secondary)] hover:text-[var(--action-primary)] hover:border-[var(--action-primary)] transition-colors"
+              >
+                <Globe className="h-3 w-3" />
+                <span>{site.label}</span>
+                <ExternalLink className="h-2.5 w-2.5 opacity-60" />
+              </a>
+            ))}
+          </div>
+
+          {/* Epistemic Medals & Badges Header Row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-[var(--border-subtle)]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-[var(--text-primary)] flex items-center gap-1.5 mr-1">
+                <Award className="h-4 w-4 text-[var(--action-primary)]" />
+                <span>Medallas e insignias epistémicas:</span>
+              </span>
+              {medals
+                .filter((m) => m.unlocked)
+                .slice(0, 4)
+                .map((medal) => (
+                  <MedalHeaderPill
+                    key={medal.id}
+                    medal={medal}
+                    onClick={() => setActiveTab('medals')}
+                  />
+                ))}
+              {medals.filter((m) => m.unlocked).length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('medals')}
+                  className="px-2.5 py-1 rounded-full text-xs font-mono font-medium text-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] hover:bg-[var(--action-primary)] hover:text-white transition-colors"
+                >
+                  +{medals.filter((m) => m.unlocked).length - 4} más
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('medals')}
+              className="text-xs text-[var(--action-primary)] hover:underline font-medium flex items-center gap-0.5"
+            >
+              <span>Ver medallero completo</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           {/* Community contributions row (No popularity metrics, strictly epistemics!) */}
-          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 pt-5 border-t border-[var(--border-subtle)] text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 pt-4 border-t border-[var(--border-subtle)] text-xs">
             <div className="space-y-1">
               <span className="text-[var(--text-tertiary)] block text-[11px]">Citas aportadas:</span>
               <div className="font-mono text-base font-semibold text-[var(--action-primary)] flex items-center gap-1">
@@ -743,6 +836,18 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('snippets')}
+          className={`px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'snippets'
+              ? 'border-[var(--action-primary)] text-[var(--action-primary)]'
+              : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+          }`}
+        >
+          <Bookmark className="h-3.5 w-3.5" />
+          <span>Citas y Extractos Guardados ({savedSnippets.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('gaps')}
           className={`px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap ${
             activeTab === 'gaps'
@@ -751,6 +856,18 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           }`}
         >
           Huecos del Saber ({userGaps.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('medals')}
+          className={`px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'medals'
+              ? 'border-[var(--action-primary)] text-[var(--action-primary)]'
+              : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+          }`}
+        >
+          <Award className="h-3.5 w-3.5" />
+          <span>Medallas e Insignias ({medals.filter((m) => m.unlocked).length})</span>
         </button>
 
         <button
@@ -788,6 +905,94 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           <span>Editar datos</span>
         </button>
       </div>
+
+      {/* Tab: Citas y Extractos Guardados */}
+      {activeTab === 'snippets' && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between pb-1">
+            <div>
+              <h2 className="font-serif text-lg font-semibold text-[var(--text-primary)]">
+                Citas y Extractos Guardados ({savedSnippets.length})
+              </h2>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Pasajes, citas y anotaciones individuales que has guardado mientras lees. Desde cada extracto puedes volver directamente a la cita general y a la obra completa.
+              </p>
+            </div>
+          </div>
+
+          {savedSnippets.length === 0 ? (
+            <div className="p-8 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-center text-xs text-[var(--text-secondary)] space-y-2">
+              <Bookmark className="h-6 w-6 mx-auto text-[var(--text-tertiary)]" />
+              <p className="font-medium text-[var(--text-primary)]">No tienes extractos guardados todavía.</p>
+              <p className="text-[11px] text-[var(--text-tertiary)] max-w-md mx-auto">
+                Al explorar cualquier artículo o su red de citas conectadas, puedes pulsar «Guardar extracto» o «Guardar fragmento» para almacenar solo esa cita sin guardar todo el artículo.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedSnippets.map((snippet) => (
+                <div
+                  key={snippet.id}
+                  className="p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-strong)] transition-all space-y-3 flex flex-col justify-between shadow-xs"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-mono text-[10px] text-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] px-2 py-0.5 rounded border border-indigo-100 dark:border-indigo-900/60 font-semibold uppercase">
+                        {snippet.citationRelation ? `Cita: ${snippet.citationRelation.toUpperCase()}` : 'Fragmento de lectura'}
+                      </span>
+                      <span className="text-[10px] text-[var(--text-tertiary)] font-mono shrink-0">
+                        {snippet.savedDate}
+                      </span>
+                    </div>
+
+                    <blockquote className="font-serif italic text-xs text-[var(--text-primary)] leading-relaxed border-l-2 border-[var(--action-primary)] pl-3">
+                      «{snippet.selectedText}»
+                    </blockquote>
+
+                    {snippet.note && (
+                      <p className="text-[11px] text-[var(--text-secondary)] bg-[var(--bg-subtle)] p-2 rounded border border-[var(--border-subtle)]">
+                        <strong>Nota:</strong> {snippet.note}
+                      </p>
+                    )}
+
+                    <div className="text-[11px] text-[var(--text-tertiary)] space-y-0.5">
+                      <span className="block font-medium text-[var(--text-secondary)]">
+                        Fuente: «{snippet.articleTitle}»
+                      </span>
+                      <span className="block text-[10px]">Autor: {snippet.articleAuthor}</span>
+                      {snippet.citationTarget && (
+                        <span className="block text-[10px] text-[var(--action-primary)] font-mono">
+                          Referencia cruzada: {snippet.citationTarget}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-[var(--border-subtle)]/70 flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => onSelectArticle(snippet.articleId)}
+                      className="inline-flex items-center gap-1.5 text-xs text-[var(--action-primary)] hover:underline font-semibold"
+                    >
+                      <GitBranch className="h-3.5 w-3.5" />
+                      <span>Ir a la cita general y artículo</span>
+                    </button>
+
+                    {onDeleteSnippet && (
+                      <button
+                        onClick={() => onDeleteSnippet(snippet.id)}
+                        className="p-1 rounded text-[var(--text-tertiary)] hover:text-rose-600 transition-colors"
+                        title="Eliminar este extracto guardado"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Tab 1: Mis Hilos en el Foro */}
       {activeTab === 'threads' && (
@@ -1254,6 +1459,15 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
         </section>
       )}
 
+      {/* Tab: Medallas e Insignias Epistémicas */}
+      {activeTab === 'medals' && (
+        <MedalsShowcase
+          medals={medals}
+          isOwner={true}
+          onTogglePin={handleTogglePinMedal}
+        />
+      )}
+
       {/* Tab 6: Formulario Completo de Edición */}
       {activeTab === 'edit' && (
         <form onSubmit={handleSaveProfile} className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 sm:p-8 space-y-8 shadow-xs">
@@ -1412,7 +1626,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               </div>
 
               <div className="rounded p-2.5 bg-[var(--bg-subtle-lilac)]/40 border border-[var(--border-subtle)] text-[11px] text-[var(--text-secondary)] flex items-start gap-2">
-                <span className="font-bold text-[var(--action-primary)] shrink-0">💡 0 KB Internos:</span>
+                <span className="font-bold text-[var(--action-primary)] shrink-0 font-mono">0 KB Internos:</span>
                 <p>
                   Puedes utilizar cualquier imagen de la web (Instagram, Imgur, Reddit, Pinterest, portafolios de arte o tu propio sitio). Se visualizan mediante enlaces directos con cabecera <code className="font-mono text-[10px] text-[var(--action-primary)]">referrerPolicy="no-referrer"</code> para evitar bloqueos por hotlink y sin sobrecargar la memoria ni almacenamiento interno.
                 </p>
@@ -1482,8 +1696,17 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-semibold text-[var(--text-primary)]">
-                  Perfil de LinkedIn (mostrado como no verificado)
+                <label className="block text-xs font-semibold text-[var(--text-primary)] flex items-center justify-between">
+                  <span>Perfil de LinkedIn</span>
+                  <label className="flex items-center gap-1 font-normal text-[10px] text-blue-700 dark:text-blue-400 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={linkedinVerified}
+                      onChange={(e) => setLinkedinVerified(e.target.checked)}
+                      className="rounded text-blue-600"
+                    />
+                    <span>Verificado por perfil</span>
+                  </label>
                 </label>
                 <input
                   type="url"
@@ -1518,6 +1741,68 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                   placeholder="https://mastodon.social/@usuario"
                   className="w-full rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-2 text-xs text-[var(--text-primary)] focus:border-[var(--action-primary)] focus:outline-none"
                 />
+              </div>
+
+              {/* Otras Páginas Web (ORCID, Substack, ResearchGate, Laboratorio...) */}
+              <div className="space-y-2 sm:col-span-2 pt-2 border-t border-[var(--border-subtle)]/60">
+                <label className="block text-xs font-semibold text-[var(--text-primary)]">
+                  Otras páginas web, cuadernos o perfiles académicos
+                </label>
+                <p className="text-[11px] text-[var(--text-tertiary)]">
+                  Añade enlaces a tu laboratorio, publicaciones en arXiv, Substack, ResearchGate o cualquier portal externo.
+                </p>
+
+                {/* List of custom sites */}
+                {otherWebsites.length > 0 && (
+                  <div className="space-y-1.5 pb-2">
+                    {otherWebsites.map((site, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between gap-2 p-2 rounded bg-[var(--bg-subtle)] border border-[var(--border-subtle)] text-xs"
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <Globe className="h-3.5 w-3.5 text-[var(--action-primary)] shrink-0" />
+                          <span className="font-semibold text-[var(--text-primary)]">{site.label}:</span>
+                          <span className="font-mono text-[11px] text-[var(--text-tertiary)] truncate">{site.url}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveOtherWebsite(index)}
+                          className="p-1 text-[var(--text-tertiary)] hover:text-rose-600 transition-colors"
+                          title="Eliminar este enlace"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add new site inputs */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                  <input
+                    type="text"
+                    value={newSiteLabel}
+                    onChange={(e) => setNewSiteLabel(e.target.value)}
+                    placeholder="Etiqueta (ej. Lab, Substack, ArXiv)"
+                    className="w-full sm:w-1/3 rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-2 text-xs text-[var(--text-primary)] focus:border-[var(--action-primary)] focus:outline-none"
+                  />
+                  <input
+                    type="url"
+                    value={newSiteUrl}
+                    onChange={(e) => setNewSiteUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1 rounded border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-2 text-xs text-[var(--text-primary)] focus:border-[var(--action-primary)] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddOtherWebsite}
+                    className="px-3 py-2 rounded bg-[var(--action-primary)] text-white text-xs font-medium hover:bg-[var(--action-hover)] flex items-center justify-center gap-1 shrink-0"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span>Añadir web</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -14,6 +14,25 @@ export const CLOSED_LICENSES: { id: OpenLicense; name: string; description: stri
   { id: 'CC BY-NC 4.0', name: 'CC BY-NC 4.0', description: 'Atribución no comercial.' },
   { id: 'CC BY-ND 4.0', name: 'CC BY-ND 4.0', description: 'Atribución sin obras derivadas.' },
 ];
+export interface EpistemicMedal {
+  id: string;
+  name: string;
+  shortName: string;
+  category: 'epistemology' | 'rigor' | 'open_knowledge' | 'dialectic' | 'verification' | 'community';
+  level: 'bronze' | 'silver' | 'gold' | 'laurel';
+  icon: string;
+  description: string;
+  criteria: string;
+  unlocked: boolean;
+  featured?: boolean;
+  earnedDate?: string;
+  evidenceText?: string;
+  evidenceLink?: string;
+  progressCurrent?: number;
+  progressTarget?: number;
+  verificationHash?: string;
+}
+
 export interface SupporterRecord {
   id: string;
   name: string;
@@ -38,8 +57,10 @@ export interface UserProfile {
   orcidVerified?: boolean;
   orcidId?: string;
   linkedinUrl?: string;
+  linkedinVerified?: boolean;
   personalUrl?: string;
   mastodonUrl?: string;
+  otherWebsites?: { label: string; url: string }[];
   isDemoUser?: boolean;
   
   // External direct donation configuration
@@ -64,6 +85,9 @@ export interface UserProfile {
     threadsCreatedCount: number;
     reviewsDoneCount: number;
   };
+
+  // Epistemic badges & medals
+  medals?: EpistemicMedal[];
 }
 
 export interface Author {
@@ -81,6 +105,7 @@ export interface Author {
   citationsReceivedCount: number;
   learningPathsCompleted: number;
   reputationByArea?: Record<string, number>;
+  medals?: EpistemicMedal[];
 }
 
 export interface Citation {
@@ -256,13 +281,27 @@ export interface ModerationLogEntry {
 export interface ReportItem {
   id: string;
   targetId: string;
-  targetType: 'articulo' | 'comentario' | 'gap';
+  targetType: 'articulo' | 'comentario' | 'gap' | 'publicacion' | 'hilo';
   targetTitle: string;
-  reason: 'plagio' | 'falta_citas' | 'ataque_personal' | 'linea_roja' | 'etiqueta_incorrecta';
+  reason: 'plagio' | 'falta_citas' | 'ataque_personal' | 'linea_roja' | 'etiqueta_incorrecta' | 'spam' | 'desinformacion' | 'otro';
   detail: string;
   reporterPseudonym: string;
   date: string;
   status: 'new' | 'in_review' | 'resolved';
+}
+
+export interface SavedSnippet {
+  id: string;
+  articleId: string;
+  articleTitle: string;
+  articleAuthor: string;
+  selectedText: string;
+  citationId?: string; // If saved from a specific citation
+  citationRelation?: CitationRelation;
+  citationTarget?: string;
+  note?: string;
+  savedDate: string;
+  paragraphIndex?: number;
 }
 
 export interface FreeBook {
@@ -270,8 +309,25 @@ export interface FreeBook {
   title: string;
   author: string;
   language: 'Español' | 'Inglés' | 'Francés' | 'Alemán' | 'Portugués';
-  topic: 'Matemáticas' | 'Física' | 'Computación' | 'Filosofía' | 'Biología' | 'Ciencias Sociales' | 'Literatura';
-  sourcePlatform: 'OpenStax' | 'Proyecto Gutenberg' | 'LibreTexts' | 'MIT OCW' | 'Internet Archive' | 'arXiv';
+  topic:
+    | 'Matemáticas'
+    | 'Física'
+    | 'Computación'
+    | 'Filosofía'
+    | 'Biología'
+    | 'Ciencias Sociales'
+    | 'Literatura'
+    | 'Sistemas'
+    | 'Economía'
+    | string;
+  sourcePlatform:
+    | 'OpenStax'
+    | 'Proyecto Gutenberg'
+    | 'LibreTexts'
+    | 'MIT OCW'
+    | 'Internet Archive'
+    | 'arXiv'
+    | string;
   formats: ('PDF' | 'EPUB' | 'Web')[];
   license: string;
   downloadUrl: string;
@@ -307,6 +363,11 @@ export interface PersonalChallenge {
   deadline: string;
   isPublic: boolean;
   milestones: Milestone[];
+  tier?: 'personal' | 'grupal' | 'comunitario';
+  participantsCount?: number;
+  maxParticipants?: number;
+  area?: string;
+  communityDeliverable?: string;
 }
 
 export interface InlineComment {
@@ -358,12 +419,64 @@ export interface GlossaryItem {
   relatedArticleId?: string;
 }
 
+export interface StudyPathStepResource {
+  id: string;
+  title: string;
+  type: 'internal_article' | 'internal_book' | 'external_doc' | 'external_course' | 'external_paper';
+  urlOrSlug: string;
+  description?: string;
+  isFree: boolean;
+}
+
+export interface StudyPathStep {
+  id: string;
+  order: number;
+  title: string;
+  description: string;
+  estimatedHours: number;
+  resources: StudyPathStepResource[];
+  completed?: boolean;
+}
+
+export interface StudyPathComment {
+  id: string;
+  authorName: string;
+  authorRole: string;
+  isGithubVerified?: boolean;
+  date: string;
+  content: string;
+  suggestedResource?: string;
+}
+
+export interface CommunityStudyPath {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  authorName: string;
+  authorRole: string;
+  isOfficial: boolean;
+  areaId: string;
+  area: string;
+  level: ContentLevel;
+  estimatedWeeks: number;
+  steps: StudyPathStep[];
+  comments: StudyPathComment[];
+  clonesCount: number;
+  forkedFromId?: string;
+  forkedFromTitle?: string;
+  lastUpdated: string;
+  isCustomFork?: boolean;
+}
+
 export interface UserPreferences {
   language: 'es' | 'en';
   theme: 'light' | 'sepia' | 'dark';
-  fontFamily: 'serif' | 'sans' | 'mono';
+  fontFamily: 'serif' | 'sans' | 'mono' | 'literata' | 'merriweather' | 'atkinson' | 'plex';
   assistedReading: boolean;
   lineFocus: boolean;
+  ultraLightMode: boolean;
+  visualMode?: boolean;
   textSize: 'standard' | 'large';
   defaultLicense: OpenLicense;
   demoMode: boolean;
@@ -372,6 +485,7 @@ export interface UserPreferences {
     | 'article'
     | 'areas'
     | 'area_detail'
+    | 'knowledge_map'
     | 'books'
     | 'repositories'
     | 'gaps'

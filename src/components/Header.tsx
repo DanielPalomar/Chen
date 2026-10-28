@@ -20,6 +20,12 @@ import {
   Library,
   BookOpen,
   Heart,
+  Award,
+  GitBranch,
+  FolderSync,
+  Zap,
+  Feather,
+  Sparkles,
 } from 'lucide-react';
 import { ChenLogo } from './ChenLogo';
 import { UserPreferences, UserProfile } from '../types';
@@ -38,6 +44,7 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   searchQuery: string;
   onOpenLogin: () => void;
+  onOpenObsidianSync?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -48,6 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSearch,
   searchQuery,
   onOpenLogin,
+  onOpenObsidianSync,
 }) => {
   const [fontMenuOpen, setFontMenuOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
@@ -62,6 +70,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const isMoreActive = [
+    'knowledge_map',
     'repositories',
     'thesis',
     'forum',
@@ -151,9 +160,20 @@ export const Header: React.FC<HeaderProps> = ({
 
             {moreMenuOpen && (
               <div
-                className="absolute left-0 mt-2 w-56 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-1.5 shadow-lg z-50 text-xs"
+                className="absolute left-0 mt-2 w-60 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] py-1.5 shadow-lg z-50 text-xs"
                 role="menu"
               >
+                <button
+                  onClick={() => {
+                    onNavigate('knowledge_map');
+                    setMoreMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-subtle)] text-[var(--text-primary)] font-medium"
+                >
+                  <GitBranch className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>Mapa de conocimiento (Red)</span>
+                </button>
+
                 <button
                   onClick={() => {
                     onNavigate('repositories');
@@ -206,10 +226,21 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-subtle)] text-[var(--text-primary)]"
                 >
                   <Target className="h-3.5 w-3.5 text-[var(--action-primary)]" />
-                  <span>Retos personales</span>
+                  <span>Retos personales y colectivos</span>
                 </button>
 
                 <div className="my-1 border-t border-[var(--border-subtle)]" />
+
+                <button
+                  onClick={() => {
+                    setMoreMenuOpen(false);
+                    onOpenObsidianSync?.();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-subtle)] text-indigo-700 dark:text-indigo-300 font-medium"
+                >
+                  <FolderSync className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>Bóveda Obsidian ([[wikilinks]])</span>
+                </button>
 
                 <button
                   onClick={() => {
@@ -252,6 +283,33 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="h-4 w-4" />
           </button>
 
+          {/* Conmutador Modo Ligero (Ahorrativo / Plano) vs Modo Visual (Inmersivo / Animaciones) */}
+          <button
+            onClick={() => onUpdatePreferences({ ultraLightMode: !preferences.ultraLightMode })}
+            title={
+              preferences.ultraLightMode
+                ? 'Modo Ligero activo (Ahorro de batería y CPU, diseño plano). Clic para cambiar a Modo Visual con animaciones y atmósfera inmersiva.'
+                : 'Modo Visual activo (Animaciones, elevaciones y aura visual). Clic para activar Modo Ligero ultra-ahorrativo.'
+            }
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+              preferences.ultraLightMode
+                ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-200 border border-emerald-400 dark:border-emerald-600 shadow-xs'
+                : 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 shadow-xs'
+            }`}
+          >
+            {preferences.ultraLightMode ? (
+              <>
+                <Feather className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" />
+                <span className="font-mono text-[11px] font-semibold">Modo Ligero</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span className="font-mono text-[11px] font-semibold">Modo Visual</span>
+              </>
+            )}
+          </button>
+
           {/* Reading Comfort & Themes */}
           <div className="relative">
             <button
@@ -274,50 +332,124 @@ export const Header: React.FC<HeaderProps> = ({
                 role="menu"
               >
                 {/* Font Choices */}
-                <div className="space-y-1.5">
-                  <span className="font-semibold text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider block">
-                    Tipografía
-                  </span>
-                  <div className="grid grid-cols-3 gap-1">
-                    <button
-                      onClick={() => {
-                        onUpdatePreferences({ fontFamily: 'serif' });
-                        setFontMenuOpen(false);
-                      }}
-                      className={`p-1.5 rounded border font-serif text-center transition-colors ${
-                        preferences.fontFamily === 'serif' && !preferences.assistedReading
-                          ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
-                          : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-                      }`}
-                    >
-                      Serif
-                    </button>
-                    <button
-                      onClick={() => {
-                        onUpdatePreferences({ fontFamily: 'sans' });
-                        setFontMenuOpen(false);
-                      }}
-                      className={`p-1.5 rounded border font-sans text-center transition-colors ${
-                        preferences.fontFamily === 'sans' && !preferences.assistedReading
-                          ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
-                          : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-                      }`}
-                    >
-                      Sans
-                    </button>
-                    <button
-                      onClick={() => {
-                        onUpdatePreferences({ fontFamily: 'mono' });
-                        setFontMenuOpen(false);
-                      }}
-                      className={`p-1.5 rounded border font-mono text-center transition-colors ${
-                        preferences.fontFamily === 'mono' && !preferences.assistedReading
-                          ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
-                          : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
-                      }`}
-                    >
-                      Mono
-                    </button>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider block">
+                      Tipografía de Lectura
+                    </span>
+                    <span className="font-mono text-[9px] text-[var(--action-primary)] font-medium">
+                      {preferences.fontFamily}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    {/* Serif Group */}
+                    <div className="text-[10px] text-[var(--text-tertiary)] font-medium">Serifas (Editorial / Ensayo):</div>
+                    <div className="grid grid-cols-3 gap-1">
+                      <button
+                        onClick={() => {
+                          onUpdatePreferences({ fontFamily: 'serif' });
+                          setFontMenuOpen(false);
+                        }}
+                        className={`p-1.5 rounded border text-center transition-colors font-serif ${
+                          preferences.fontFamily === 'serif' && !preferences.assistedReading
+                            ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
+                            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                        }`}
+                        title="Newsreader — Clásica y académica"
+                      >
+                        Newsreader
+                      </button>
+                      <button
+                        onClick={() => {
+                          onUpdatePreferences({ fontFamily: 'literata' });
+                          setFontMenuOpen(false);
+                        }}
+                        className={`p-1.5 rounded border text-center transition-colors font-serif ${
+                          preferences.fontFamily === 'literata' && !preferences.assistedReading
+                            ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
+                            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                        }`}
+                        title="Literata — Diseñada para lectura prolongada de libros"
+                      >
+                        Literata
+                      </button>
+                      <button
+                        onClick={() => {
+                          onUpdatePreferences({ fontFamily: 'merriweather' });
+                          setFontMenuOpen(false);
+                        }}
+                        className={`p-1.5 rounded border text-center transition-colors font-serif ${
+                          preferences.fontFamily === 'merriweather' && !preferences.assistedReading
+                            ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
+                            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                        }`}
+                        title="Merriweather — Serifa densa de alto contraste"
+                      >
+                        Merriweather
+                      </button>
+                    </div>
+
+                    {/* Sans & Accessible Group */}
+                    <div className="text-[10px] text-[var(--text-tertiary)] font-medium pt-1">Sans-serif & Accesibilidad:</div>
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        onClick={() => {
+                          onUpdatePreferences({ fontFamily: 'sans' });
+                          setFontMenuOpen(false);
+                        }}
+                        className={`p-1.5 rounded border text-center transition-colors font-sans ${
+                          preferences.fontFamily === 'sans' && !preferences.assistedReading
+                            ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
+                            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                        }`}
+                        title="Inter — Sans moderna y neutra"
+                      >
+                        Inter (Sans)
+                      </button>
+                      <button
+                        onClick={() => {
+                          onUpdatePreferences({ fontFamily: 'plex' });
+                          setFontMenuOpen(false);
+                        }}
+                        className={`p-1.5 rounded border text-center transition-colors font-sans ${
+                          preferences.fontFamily === 'plex' && !preferences.assistedReading
+                            ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
+                            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                        }`}
+                        title="IBM Plex Sans — Grotesque técnica"
+                      >
+                        IBM Plex Sans
+                      </button>
+                      <button
+                        onClick={() => {
+                          onUpdatePreferences({ fontFamily: 'atkinson' });
+                          setFontMenuOpen(false);
+                        }}
+                        className={`p-1.5 rounded border text-center transition-colors ${
+                          preferences.fontFamily === 'atkinson' && !preferences.assistedReading
+                            ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
+                            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                        }`}
+                        title="Atkinson Hyperlegible — Máxima distinción de glifos para baja visión y dislexia"
+                      >
+                        Atkinson (Legible)
+                      </button>
+                      <button
+                        onClick={() => {
+                          onUpdatePreferences({ fontFamily: 'mono' });
+                          setFontMenuOpen(false);
+                        }}
+                        className={`p-1.5 rounded border font-mono text-center transition-colors ${
+                          preferences.fontFamily === 'mono' && !preferences.assistedReading
+                            ? 'border-[var(--action-primary)] bg-[var(--bg-subtle-lilac)] text-[var(--action-primary)] font-bold'
+                            : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]'
+                        }`}
+                        title="JetBrains Mono — Código técnico"
+                      >
+                        JetBrains Mono
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -501,6 +633,17 @@ export const Header: React.FC<HeaderProps> = ({
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]"
                 >
+                  <Award className="h-3.5 w-3.5 text-amber-600" />
+                  <span>Mis Medallas e Insignias</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onNavigate('my_profile');
+                    setUserMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]"
+                >
                   <Heart className="h-3.5 w-3.5 text-emerald-600" />
                   <span>Donaciones y Redes</span>
                 </button>
@@ -557,6 +700,31 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
           )}
+          {/* Mobile Mode Switcher */}
+          <div className="p-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-subtle)] flex items-center justify-between">
+            <span className="text-xs text-[var(--text-tertiary)] font-mono">Rendimiento:</span>
+            <button
+              onClick={() => onUpdatePreferences({ ultraLightMode: !preferences.ultraLightMode })}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${
+                preferences.ultraLightMode
+                  ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-200 border border-emerald-400 dark:border-emerald-600'
+                  : 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800'
+              }`}
+            >
+              {preferences.ultraLightMode ? (
+                <>
+                  <Feather className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
+                  <span className="font-mono text-[11px] font-semibold">Modo Ligero</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span className="font-mono text-[11px] font-semibold">Modo Visual</span>
+                </>
+              )}
+            </button>
+          </div>
+
           <div className="grid grid-cols-2 gap-2 text-xs">
             <button
               onClick={() => {
@@ -638,6 +806,24 @@ export const Header: React.FC<HeaderProps> = ({
               className="p-2 rounded text-left hover:bg-[var(--bg-subtle)] text-[var(--text-secondary)]"
             >
               Retos personales
+            </button>
+            <button
+              onClick={() => {
+                onNavigate('knowledge_map');
+                setMobileMenuOpen(false);
+              }}
+              className="p-2 rounded text-left hover:bg-[var(--bg-subtle)] text-indigo-700 dark:text-indigo-400 font-medium"
+            >
+              Mapa de conocimiento
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenObsidianSync?.();
+              }}
+              className="p-2 rounded text-left hover:bg-[var(--bg-subtle)] text-indigo-700 dark:text-indigo-400 font-medium"
+            >
+              Bóveda Obsidian (.md)
             </button>
             <button
               onClick={() => {

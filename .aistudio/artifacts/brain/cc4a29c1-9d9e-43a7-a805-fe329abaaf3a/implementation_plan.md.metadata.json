@@ -1,6 +1,6 @@
 {
-  "summary":  "Plan de implementación para Chen: plataforma interactiva de conocimiento libre basada en el documento de presentación, con explorador de artículos, Huecos del Saber con búsqueda reflexiva, citas argumentativas, práctica privada con tarjetas de repetición espaciada, mapa visual interactivo de argumentos y publicidad ética 100% opcional y no intrusiva.",
-  "updatedAt":  "2026-10-26T17:07:24.932449107Z",
+  "summary":  "Plan de rediseño para aligerar la interfaz, descongestionar tarjetas y vistas sobrecargadas, y diferenciar claramente el Modo Ligero (máximo ahorro de recursos, diseño plano y limpio) del Modo Óptimo (diseño enriquecido con Tailwind, animaciones y micro-interacciones).",
+  "updatedAt":  "2026-10-27T23:17:01.177540210Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

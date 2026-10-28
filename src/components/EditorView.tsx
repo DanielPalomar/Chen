@@ -105,6 +105,7 @@ export const EditorView: React.FC<EditorViewProps> = ({
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [lastSaved, setLastSaved] = useState<string>('Guardado local activo');
   const [isSaved, setIsSaved] = useState(false);
+  const [contentWarning, setContentWarning] = useState<string | null>(null);
 
   // Video embed editor
   const [hasVideo, setHasVideo] = useState(false);
@@ -206,6 +207,19 @@ export const EditorView: React.FC<EditorViewProps> = ({
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
 
+    // Heuristic check for +18 prohibited content (pornography / adult commercial links) vs legitimate biology/literature/social sciences
+    const adultCommercialKeywords = ['pornhub', 'xvideos', 'onlyfans.com', 'camgirls', 'redtube', 'sexshop', 'escort service', 'xxx video', 'porn video'];
+    const lowerContent = (title + ' ' + content).toLowerCase();
+    const containsAdultCommercial = adultCommercialKeywords.some((kw) => lowerContent.includes(kw));
+
+    if (containsAdultCommercial) {
+      setContentWarning(
+        'Vulneración de Línea Roja comunitaria: El material pornográfico o enlaces comerciales para adultos (+18) están prohibidos en Chen. Los términos y análisis anatómicos, reproductivos, biológicos, literarios y de ciencias sociales sí están permitidos cuando se fundamentan en fuentes académicas.'
+      );
+      return;
+    }
+    setContentWarning(null);
+
     const newArticle: Article = {
       id: `art-${Date.now().toString(36)}`,
       slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
@@ -248,6 +262,17 @@ export const EditorView: React.FC<EditorViewProps> = ({
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
+      {/* Red line warning banner if triggered */}
+      {contentWarning && (
+        <div className="rounded-lg border border-rose-300 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs text-rose-800 dark:text-rose-300 flex items-start gap-3 animate-fadeIn">
+          <Shield className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-semibold block">Aviso de Moderación y Línea Roja:</span>
+            <p className="leading-relaxed">{contentWarning}</p>
+          </div>
+        </div>
+      )}
+
       {/* Top Bar with autosave and Publish action */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-4">
         <button

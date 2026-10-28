@@ -9,24 +9,29 @@ import {
   CheckCircle2,
   FileText,
   Search,
+  Flag,
 } from 'lucide-react';
-import { KnowledgeGap, KnowledgeGapAnswer, EpistemicStatus } from '../types';
+import { KnowledgeGap, KnowledgeGapAnswer, EpistemicStatus, ReportItem } from '../types';
 import { EpistemicBadge } from './SemanticBadges';
+import { ReportModal } from './ReportModal';
 
 interface KnowledgeGapsViewProps {
   gaps: KnowledgeGap[];
   onAddGap: (gap: Omit<KnowledgeGap, 'id' | 'date' | 'answers' | 'status'>) => void;
   onAddAnswerToGap: (gapId: string, answer: Omit<KnowledgeGapAnswer, 'id' | 'date'>) => void;
+  onSubmitReport?: (report: ReportItem) => void;
 }
 
 export const KnowledgeGapsView: React.FC<KnowledgeGapsViewProps> = ({
   gaps,
   onAddGap,
   onAddAnswerToGap,
+  onSubmitReport,
 }) => {
   const [selectedArea, setSelectedArea] = useState('all');
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
+  const [reportGapData, setReportGapData] = useState<{ id: string; title: string } | null>(null);
 
   // Ask Flow state
   const [title, setTitle] = useState('');
@@ -177,7 +182,18 @@ export const KnowledgeGapsView: React.FC<KnowledgeGapsViewProps> = ({
                 <span aria-hidden="true">·</span>
                 <span>{gap.date}</span>
               </div>
-              <EpistemicBadge status={gap.epistemicStatus} />
+              <div className="flex items-center gap-2">
+                <EpistemicBadge status={gap.epistemicStatus} />
+                {onSubmitReport && (
+                  <button
+                    onClick={() => setReportGapData({ id: gap.id, title: gap.title })}
+                    className="p-1 rounded text-[var(--text-tertiary)] hover:text-rose-600 transition-colors"
+                    title="Reportar este hueco del saber"
+                  >
+                    <Flag className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <h2 className="font-serif text-xl font-semibold text-[var(--text-primary)] leading-snug">
@@ -513,6 +529,18 @@ export const KnowledgeGapsView: React.FC<KnowledgeGapsViewProps> = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* Report Modal */}
+      {reportGapData && onSubmitReport && (
+        <ReportModal
+          isOpen={true}
+          onClose={() => setReportGapData(null)}
+          targetId={reportGapData.id}
+          targetType="gap"
+          targetTitle={reportGapData.title}
+          onSubmitReport={onSubmitReport}
+        />
       )}
     </div>
   );

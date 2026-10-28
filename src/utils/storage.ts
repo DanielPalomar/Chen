@@ -13,6 +13,8 @@ import {
   GlossaryItem,
   ModerationLogEntry,
   ReportItem,
+  CommunityStudyPath,
+  SavedSnippet,
 } from '../types';
 import {
   INITIAL_ARTICLES,
@@ -26,6 +28,7 @@ import {
   INITIAL_GLOSSARY,
   INITIAL_MODERATION_LOG,
   INITIAL_BOOKS,
+  INITIAL_STUDY_PATHS,
   DEMO_USERS,
 } from '../data/initialData';
 
@@ -42,8 +45,79 @@ const STORAGE_KEYS = {
   GLOSSARY: 'chen_glossary_v3',
   MODERATION: 'chen_moderation_v3',
   REPORTS: 'chen_reports_v3',
+  STUDY_PATHS: 'chen_study_paths_v3',
+  SNIPPETS: 'chen_snippets_v3',
   USER: 'chen_user_session_v3',
   PREFERENCES: 'chen_prefs_v3',
+};
+
+const INITIAL_SNIPPETS: SavedSnippet[] = [
+  {
+    id: 'snip-1',
+    articleId: 'la-asimetria-deductiva-del-falsacionismo-popperiano',
+    articleTitle: 'La asimetría deductiva del falsacionismo popperiano',
+    articleAuthor: 'Dra. Elena Vasconcelos',
+    selectedText: 'Ninguna cantidad de observaciones de cisnes blancos puede justificar la inferencia de que todos los cisnes son blancos; sin embargo, la observación de un único cisne negro basta para refutarla concluyentemente.',
+    citationId: 'cit-1',
+    citationRelation: 'supports',
+    citationTarget: 'Logik der Forschung (1934)',
+    note: 'Principio fundamental de la asimetría lógica entre verificación y falsación.',
+    savedDate: '24 de octubre, 2026',
+    paragraphIndex: 2,
+  },
+  {
+    id: 'snip-2',
+    articleId: 'el-problema-de-la-detencion-de-turing-y-los-limites-del-computo',
+    articleTitle: 'El problema de la detención de Turing y los límites intrínsecos del cómputo',
+    articleAuthor: 'Prof. Carlos Mendoza',
+    selectedText: 'No existe un algoritmo general que pueda decidir, para todo programa y toda entrada posible, si dicho programa terminará o continuará ejecutándose indefinidamente.',
+    citationId: 'cit-1',
+    citationRelation: 'extends',
+    citationTarget: 'On Computable Numbers (1936)',
+    note: 'Incompletitud algorítmica fundamental.',
+    savedDate: '26 de octubre, 2026',
+    paragraphIndex: 3,
+  },
+];
+
+// Snippets (Saved Article Excerpts & Citations)
+export const getStoredSnippets = (): SavedSnippet[] => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.SNIPPETS);
+    if (!raw) return INITIAL_SNIPPETS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : INITIAL_SNIPPETS;
+  } catch (e) {
+    return INITIAL_SNIPPETS;
+  }
+};
+
+export const saveStoredSnippets = (snippets: SavedSnippet[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.SNIPPETS, JSON.stringify(snippets));
+  } catch (e) {
+    console.error('Error saving snippets:', e);
+  }
+};
+
+// Study Paths (Curated & Community)
+export const getStoredStudyPaths = (): CommunityStudyPath[] => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.STUDY_PATHS);
+    if (!raw) return INITIAL_STUDY_PATHS;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_STUDY_PATHS;
+  } catch (e) {
+    return INITIAL_STUDY_PATHS;
+  }
+};
+
+export const saveStoredStudyPaths = (paths: CommunityStudyPath[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.STUDY_PATHS, JSON.stringify(paths));
+  } catch (e) {
+    console.error('Error saving study paths:', e);
+  }
 };
 
 // User Profile & Session
@@ -268,6 +342,8 @@ export const getStoredPreferences = (): UserPreferences => {
     fontFamily: 'serif',
     assistedReading: false,
     lineFocus: false,
+    ultraLightMode: false,
+    visualMode: true,
     textSize: 'standard',
     defaultLicense: 'CC BY-SA 4.0',
     demoMode: true,
@@ -280,7 +356,14 @@ export const getStoredPreferences = (): UserPreferences => {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PREFERENCES);
     if (!raw) return defaultPrefs;
-    return { ...defaultPrefs, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const merged = { ...defaultPrefs, ...parsed };
+    if (merged.ultraLightMode) {
+      merged.visualMode = false;
+    } else if (merged.visualMode === undefined) {
+      merged.visualMode = true;
+    }
+    return merged;
   } catch (e) {
     return defaultPrefs;
   }

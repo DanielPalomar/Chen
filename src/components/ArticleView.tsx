@@ -18,8 +18,11 @@ import {
   Info,
   CheckCircle2,
   Lock,
+  BookmarkCheck,
+  Bookmark,
+  FileText,
 } from 'lucide-react';
-import { Article, CitationRelation, ReportItem, InlineDiscussion, UserProfile } from '../types';
+import { Article, CitationRelation, ReportItem, InlineDiscussion, UserProfile, SavedSnippet } from '../types';
 import {
   EpistemicBadge,
   LevelIndicator,
@@ -41,6 +44,9 @@ interface ArticleViewProps {
   onAddFlashcard: (card: { topic: string; area: string; question: string; answer: string; articleId: string }) => void;
   onSubmitReport: (report: ReportItem) => void;
   currentUser: UserProfile | null;
+  savedSnippets?: SavedSnippet[];
+  onSaveSnippet?: (snippet: SavedSnippet) => void;
+  onOpenObsidianSync?: (article: Article) => void;
 }
 
 export const ArticleView: React.FC<ArticleViewProps> = ({
@@ -52,10 +58,17 @@ export const ArticleView: React.FC<ArticleViewProps> = ({
   onAddFlashcard,
   onSubmitReport,
   currentUser,
+  savedSnippets = [],
+  onSaveSnippet,
+  onOpenObsidianSync,
 }) => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [citeModalOpen, setCiteModalOpen] = useState(false);
+  const [customSnippetModalOpen, setCustomSnippetModalOpen] = useState(false);
+  const [snippetText, setSnippetText] = useState('');
+  const [snippetNote, setSnippetNote] = useState('');
+  const [savedNotification, setSavedNotification] = useState<string | null>(null);
   const [cardAdded, setCardAdded] = useState(false);
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
 
@@ -171,8 +184,62 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
     );
   };
 
+  const handleSaveCitationSnippet = (c: {
+    id: string;
+    targetArticleTitle: string;
+    targetAuthor: string;
+    quoteText: string;
+    relation: CitationRelation;
+    explanation: string;
+  }) => {
+    if (!onSaveSnippet) return;
+    const newSnippet: SavedSnippet = {
+      id: `snip-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      articleId: article.id,
+      articleTitle: article.title,
+      articleAuthor: article.author.name,
+      selectedText: c.quoteText,
+      citationId: c.id,
+      citationRelation: c.relation,
+      citationTarget: c.targetArticleTitle,
+      note: c.explanation,
+      savedDate: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
+    };
+    onSaveSnippet(newSnippet);
+    setSavedNotification(`Extracto de "${c.targetArticleTitle}" guardado en tu perfil.`);
+    setTimeout(() => setSavedNotification(null), 3000);
+  };
+
+  const handleSaveCustomSnippet = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!snippetText.trim() || !onSaveSnippet) return;
+    const newSnippet: SavedSnippet = {
+      id: `snip-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      articleId: article.id,
+      articleTitle: article.title,
+      articleAuthor: article.author.name,
+      selectedText: snippetText.trim(),
+      note: snippetNote.trim() || undefined,
+      savedDate: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
+    };
+    onSaveSnippet(newSnippet);
+    setCustomSnippetModalOpen(false);
+    setSnippetText('');
+    setSnippetNote('');
+    setSavedNotification('Fragmento del texto guardado en tu perfil con enlace a esta obra.');
+    setTimeout(() => setSavedNotification(null), 3000);
+  };
+
   return (
     <div className="space-y-8">
+      {/* Toast Notification when snippet or card is saved */}
+      {savedNotification && (
+        <div className="fixed top-16 right-4 z-50 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/90 text-emerald-900 dark:text-emerald-200 px-4 py-2.5 shadow-lg text-xs flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span className="font-medium">{savedNotification}</span>
+        </div>
+      )}
+
       {/* Top back navigation and easy action strip */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] pb-3">
         <button
@@ -183,7 +250,7 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
           <span>Volver al explorador</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center flex-wrap gap-2">
           {/* Citar Fácil Button */}
           <button
             onClick={() => setCiteModalOpen(true)}
@@ -191,6 +258,16 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
           >
             <Quote className="h-3.5 w-3.5" />
             <span>Citar o exportar</span>
+          </button>
+
+          {/* Guardar fragmento sin guardar todo el artículo */}
+          <button
+            onClick={() => setCustomSnippetModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border border-indigo-300 dark:border-indigo-800 bg-[var(--bg-surface)] text-[var(--action-primary)] hover:bg-[var(--bg-subtle-lilac)]/50 transition-colors"
+            title="Guardar una parte o cita específica de este artículo sin guardar la obra completa"
+          >
+            <Bookmark className="h-3.5 w-3.5" />
+            <span>Guardar fragmento</span>
           </button>
 
           {/* Historial Button */}
@@ -221,13 +298,14 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
             )}
           </button>
 
-          {/* Report Button */}
+          {/* Prominent Report Button */}
           <button
             onClick={() => setReportOpen(true)}
-            className="p-1.5 rounded border border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:text-rose-600"
-            title="Reportar anomalía a los moderadores de área"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-400 hover:bg-rose-100/60 transition-colors"
+            title="Reportar anomalía o problema ético/académico a moderación"
           >
             <Flag className="h-3.5 w-3.5" />
+            <span>Reportar</span>
           </button>
         </div>
       </div>
@@ -453,7 +531,7 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
             </section>
           )}
 
-          {/* Citations Panel (Section 1.8: Grouped by Supports / Contradicts / Extends + Archive Links) */}
+          {/* Citations Panel (Section 1.8: Grouped by Supports / Contradicts / Extends + Archive Links + Snippets) */}
           <section id="citations-sec" className="space-y-5 pt-8 border-t border-[var(--border-subtle)]">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -463,7 +541,7 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
                 </h3>
               </div>
               <p className="text-xs text-[var(--text-secondary)]">
-                Referencias conectadas con función semántica explícita y enlace archivado en Internet Archive para prevenir enlaces rotos.
+                Referencias conectadas con función semántica explícita. Puedes guardar cualquier extracto de cita individual en tu perfil sin guardar la obra completa.
               </p>
             </div>
 
@@ -474,41 +552,71 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
                   Evidencias que apoyan la tesis ({citationsSupports.length})
                 </span>
                 <div className="space-y-2.5">
-                  {citationsSupports.map((c) => (
-                    <div
-                      key={c.id}
-                      className="p-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-2 text-xs transition-colors hover:border-[var(--border-strong)]"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-[var(--text-primary)]">
-                          {c.targetArticleTitle}
-                        </span>
-                        <span className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">
-                          APOYA
-                        </span>
-                      </div>
-                      <p className="font-serif italic text-[var(--text-secondary)]">
-                        "{c.quoteText}" — {c.targetAuthor}
-                      </p>
-                      <p className="text-[11px] text-[var(--text-tertiary)]">
-                        <strong>Razón de la conexión:</strong> {c.explanation}
-                      </p>
-                      {c.archiveUrl && (
-                        <div className="pt-1 flex items-center gap-2 text-[10px] text-[var(--text-tertiary)]">
-                          <span className="text-emerald-600 font-mono">Enlace archivado</span>
-                          <span>·</span>
-                          <a
-                            href={c.archiveUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline text-[var(--action-primary)]"
-                          >
-                            Ver copia Wayback Machine
-                          </a>
+                  {citationsSupports.map((c) => {
+                    const waybackLink = c.archiveUrl || `https://web.archive.org/web/*/${encodeURIComponent(c.targetArticleTitle)}`;
+                    const isSaved = savedSnippets.some(
+                      (s) => s.citationId === c.id || s.selectedText === c.quoteText
+                    );
+                    return (
+                      <div
+                        key={c.id}
+                        className="p-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-2.5 text-xs transition-colors hover:border-[var(--border-strong)]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-[var(--text-primary)]">
+                            {c.targetArticleTitle}
+                          </span>
+                          <span className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-900">
+                            APOYA
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        <p className="font-serif italic text-[var(--text-secondary)]">
+                          "{c.quoteText}" — {c.targetAuthor}
+                        </p>
+                        <p className="text-[11px] text-[var(--text-tertiary)]">
+                          <strong>Razón de la conexión:</strong> {c.explanation}
+                        </p>
+                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)]/60">
+                          <div className="flex items-center gap-2 text-[10px] text-[var(--text-tertiary)]">
+                            <span className="inline-flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Preservado
+                            </span>
+                            <span>·</span>
+                            <a
+                              href={waybackLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline text-[var(--action-primary)] inline-flex items-center gap-1"
+                            >
+                              <span>Instantánea archivada</span>
+                              <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleSaveCitationSnippet(c)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-medium border border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--action-primary)] hover:border-[var(--action-primary)] transition-colors"
+                              title="Guardar este extracto sin guardar todo el artículo"
+                            >
+                              {isSaved ? (
+                                <>
+                                  <BookmarkCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="text-emerald-600 dark:text-emerald-400">Extracto guardado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <BookmarkPlus className="h-3 w-3" />
+                                  <span>Guardar extracto</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -520,27 +628,71 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
                   Objeciones y contraejemplos ({citationsContradicts.length})
                 </span>
                 <div className="space-y-2.5">
-                  {citationsContradicts.map((c) => (
-                    <div
-                      key={c.id}
-                      className="p-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-2 text-xs transition-colors hover:border-[var(--border-strong)]"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-[var(--text-primary)]">
-                          {c.targetArticleTitle}
-                        </span>
-                        <span className="font-mono text-[11px] text-rose-600 dark:text-rose-400 font-semibold">
-                          CONTRADICE
-                        </span>
+                  {citationsContradicts.map((c) => {
+                    const waybackLink = c.archiveUrl || `https://web.archive.org/web/*/${encodeURIComponent(c.targetArticleTitle)}`;
+                    const isSaved = savedSnippets.some(
+                      (s) => s.citationId === c.id || s.selectedText === c.quoteText
+                    );
+                    return (
+                      <div
+                        key={c.id}
+                        className="p-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-2.5 text-xs transition-colors hover:border-[var(--border-strong)]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-[var(--text-primary)]">
+                            {c.targetArticleTitle}
+                          </span>
+                          <span className="font-mono text-[11px] text-rose-600 dark:text-rose-400 font-semibold px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900">
+                            CONTRADICE
+                          </span>
+                        </div>
+                        <p className="font-serif italic text-[var(--text-secondary)]">
+                          "{c.quoteText}" — {c.targetAuthor}
+                        </p>
+                        <p className="text-[11px] text-[var(--text-tertiary)]">
+                          <strong>Objeción:</strong> {c.explanation}
+                        </p>
+                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)]/60">
+                          <div className="flex items-center gap-2 text-[10px] text-[var(--text-tertiary)]">
+                            <span className="inline-flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Preservado
+                            </span>
+                            <span>·</span>
+                            <a
+                              href={waybackLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline text-[var(--action-primary)] inline-flex items-center gap-1"
+                            >
+                              <span>Instantánea archivada</span>
+                              <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleSaveCitationSnippet(c)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-medium border border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--action-primary)] hover:border-[var(--action-primary)] transition-colors"
+                              title="Guardar este extracto sin guardar todo el artículo"
+                            >
+                              {isSaved ? (
+                                <>
+                                  <BookmarkCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="text-emerald-600 dark:text-emerald-400">Extracto guardado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <BookmarkPlus className="h-3 w-3" />
+                                  <span>Guardar extracto</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <p className="font-serif italic text-[var(--text-secondary)]">
-                        "{c.quoteText}" — {c.targetAuthor}
-                      </p>
-                      <p className="text-[11px] text-[var(--text-tertiary)]">
-                        <strong>Objeción:</strong> {c.explanation}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -552,27 +704,71 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
                   Ampliaciones y generalizaciones ({citationsExtends.length})
                 </span>
                 <div className="space-y-2.5">
-                  {citationsExtends.map((c) => (
-                    <div
-                      key={c.id}
-                      className="p-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-2 text-xs transition-colors hover:border-[var(--border-strong)]"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-[var(--text-primary)]">
-                          {c.targetArticleTitle}
-                        </span>
-                        <span className="font-mono text-[11px] text-teal-600 dark:text-teal-400 font-semibold">
-                          AMPLÍA
-                        </span>
+                  {citationsExtends.map((c) => {
+                    const waybackLink = c.archiveUrl || `https://web.archive.org/web/*/${encodeURIComponent(c.targetArticleTitle)}`;
+                    const isSaved = savedSnippets.some(
+                      (s) => s.citationId === c.id || s.selectedText === c.quoteText
+                    );
+                    return (
+                      <div
+                        key={c.id}
+                        className="p-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] space-y-2.5 text-xs transition-colors hover:border-[var(--border-strong)]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-[var(--text-primary)]">
+                            {c.targetArticleTitle}
+                          </span>
+                          <span className="font-mono text-[11px] text-teal-600 dark:text-teal-400 font-semibold px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-900">
+                            AMPLÍA
+                          </span>
+                        </div>
+                        <p className="font-serif italic text-[var(--text-secondary)]">
+                          "{c.quoteText}" — {c.targetAuthor}
+                        </p>
+                        <p className="text-[11px] text-[var(--text-tertiary)]">
+                          <strong>Generalización:</strong> {c.explanation}
+                        </p>
+                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)]/60">
+                          <div className="flex items-center gap-2 text-[10px] text-[var(--text-tertiary)]">
+                            <span className="inline-flex items-center gap-1 font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Preservado
+                            </span>
+                            <span>·</span>
+                            <a
+                              href={waybackLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:underline text-[var(--action-primary)] inline-flex items-center gap-1"
+                            >
+                              <span>Instantánea archivada</span>
+                              <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleSaveCitationSnippet(c)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-medium border border-[var(--border-subtle)] bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-[var(--action-primary)] hover:border-[var(--action-primary)] transition-colors"
+                              title="Guardar este extracto sin guardar todo el artículo"
+                            >
+                              {isSaved ? (
+                                <>
+                                  <BookmarkCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span className="text-emerald-600 dark:text-emerald-400">Extracto guardado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <BookmarkPlus className="h-3 w-3" />
+                                  <span>Guardar extracto</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <p className="font-serif italic text-[var(--text-secondary)]">
-                        "{c.quoteText}" — {c.targetAuthor}
-                      </p>
-                      <p className="text-[11px] text-[var(--text-tertiary)]">
-                        <strong>Generalización:</strong> {c.explanation}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -696,6 +892,30 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
               </p>
             </div>
 
+            {/* Obsidian Vault Sync Option */}
+            <div className="space-y-2 p-3.5 rounded border border-purple-200 dark:border-purple-900 bg-purple-50/50 dark:bg-purple-950/20 text-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 font-semibold text-[var(--text-primary)]">
+                  <GitBranch className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <span>Sincronizar con Obsidian ([[wikilinks]])</span>
+                </div>
+                {onOpenObsidianSync && (
+                  <button
+                    onClick={() => {
+                      setCiteModalOpen(false);
+                      onOpenObsidianSync(article);
+                    }}
+                    className="px-2.5 py-1 rounded bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium transition-colors"
+                  >
+                    Abrir bóveda
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                Exporta este artículo con frontmatter YAML y citas transformadas en enlaces bidireccionales <code>[[Título]]</code> para el Graph View de Obsidian.
+              </p>
+            </div>
+
             {/* NotebookLM Honest Opt-in (Conflict 3 Strict Compliance) */}
             <div className="space-y-2 p-3.5 rounded border border-indigo-200 dark:border-indigo-900 bg-[var(--bg-subtle-lilac)] text-xs">
               <div className="flex items-center gap-1.5 font-semibold text-[var(--text-primary)]">
@@ -735,6 +955,87 @@ ${article.citations.map((c) => `- [${c.relation.toUpperCase()}] ${c.targetArticl
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Guardar Fragmento de Lectura (Snippet) */}
+      {customSnippetModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-lg rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-6 space-y-4 shadow-2xl">
+            <div className="flex items-start justify-between border-b border-[var(--border-subtle)] pb-3">
+              <div className="space-y-0.5">
+                <h3 className="font-serif text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                  <Bookmark className="h-4 w-4 text-[var(--action-primary)]" />
+                  <span>Guardar Fragmento de Lectura</span>
+                </h3>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  Guarda un pasaje o cita sin tener que guardar el artículo completo. Se mantendrá el vínculo a la obra original y sus citas conectadas.
+                </p>
+              </div>
+              <button
+                onClick={() => setCustomSnippetModalOpen(false)}
+                className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCustomSnippet} className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-[var(--text-primary)]">
+                  Texto o extracto a guardar <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  value={snippetText}
+                  onChange={(e) => setSnippetText(e.target.value)}
+                  placeholder="Pega o escribe aquí la frase, argumento o cita que deseas conservar..."
+                  rows={4}
+                  required
+                  className="w-full rounded-md border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-2.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-[var(--action-primary)] focus:outline-none leading-relaxed"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-[var(--text-primary)]">
+                  Nota o reflexión personal (opcional)
+                </label>
+                <input
+                  type="text"
+                  value={snippetNote}
+                  onChange={(e) => setSnippetNote(e.target.value)}
+                  placeholder="Ej. Relevante para el problema de inducción en epistemología..."
+                  className="w-full rounded-md border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:border-[var(--action-primary)] focus:outline-none"
+                />
+              </div>
+
+              <div className="p-2.5 rounded bg-[var(--bg-subtle-lilac)]/50 border border-[var(--border-subtle)] text-[11px] text-[var(--text-secondary)] space-y-1 font-mono">
+                <span className="font-semibold text-[var(--action-primary)] block">Fuente enlazada:</span>
+                <span className="line-clamp-1 text-[var(--text-primary)]">«{article.title}»</span>
+                <span className="text-[10px] text-[var(--text-tertiary)] block">Por {article.author.name} · {article.area}</span>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[var(--border-subtle)]">
+                <button
+                  type="button"
+                  onClick={() => setCustomSnippetModalOpen(false)}
+                  className="px-3.5 py-1.5 rounded text-xs border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded bg-[var(--action-primary)] hover:bg-[var(--action-hover)] text-white text-xs font-medium shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <BookmarkPlus className="h-3.5 w-3.5" />
+                  <span>Guardar en mi perfil</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
