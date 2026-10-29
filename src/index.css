@@ -2,24 +2,71 @@
 
 @layer base {
   :root {
-    --font-serif: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif;
+    --font-serif: Charter, 'Bitstream Charter', 'Sitka Text', Georgia, Cambria, serif;
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --font-mono: ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace;
+
+    /* Light Mode: Papel de Archivo */
+    --canvas: #F7F5F0;
+    --surface: #FDFCF9;
+    --surface-muted: #EFECE6;
+    --ink-primary: #121211;
+    --ink-secondary: #4A4843;
+    --ink-muted: #78756E;
+    --hairline: #DCD8CE;
+
+    /* Semantic Accents: Light Mode */
+    --supports-text: #14532D;
+    --supports-bg: #EAF2EC;
+    --supports-border: #A3C6AD;
+
+    --contradicts-text: #881337;
+    --contradicts-bg: #F9EBEE;
+    --contradicts-border: #DFB0BA;
+
+    --extends-text: #1E3A8A;
+    --extends-bg: #EBF0F9;
+    --extends-border: #B0C2E4;
+  }
+
+  .dark {
+    /* Dark Mode: Pizarra Nocturna */
+    --canvas: #0C0C0B;
+    --surface: #141413;
+    --surface-muted: #1C1C1A;
+    --ink-primary: #ECEAE4;
+    --ink-secondary: #A3A098;
+    --ink-muted: #73716A;
+    --hairline: #262624;
+
+    /* Semantic Accents: Dark Mode */
+    --supports-text: #86EFAC;
+    --supports-bg: #0D2618;
+    --supports-border: #1B4A2B;
+
+    --contradicts-text: #FDA4AF;
+    --contradicts-bg: #2A0E17;
+    --contradicts-border: #5C1D2B;
+
+    --extends-text: #93C5FD;
+    --extends-bg: #0F1E3D;
+    --extends-border: #1D3B68;
   }
 
   html {
     scroll-behavior: smooth;
-    background-color: #FBF9F5;
-    color: #141413;
+    background-color: var(--canvas);
+    color: var(--ink-primary);
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #FBF9F5;
-    color: #141413;
+    background-color: var(--canvas);
+    color: var(--ink-primary);
     line-height: 1.6;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .font-serif {
@@ -31,7 +78,124 @@
   }
 
   ::selection {
-    background-color: #FDE68A; /* Warm Amber highlight */
-    color: #141413;
+    background-color: #E6DFD1;
+    color: #121211;
+  }
+
+  .dark ::selection {
+    background-color: #383630;
+    color: #ECEAE4;
+  }
+}
+
+/* Clases semánticas de cita estructurada con contraste AAA */
+.badge-supports {
+  color: var(--supports-text);
+  background-color: var(--supports-bg);
+  border-color: var(--supports-border);
+}
+
+.badge-contradicts {
+  color: var(--contradicts-text);
+  background-color: var(--contradicts-bg);
+  border-color: var(--contradicts-border);
+}
+
+.badge-extends {
+  color: var(--extends-text);
+  background-color: var(--extends-bg);
+  border-color: var(--extends-border);
+}
+
+/* Línea de cita editorial en artículos */
+.prose-citation-quote {
+  border-bottom: 1.5px dotted var(--ink-secondary);
+  background-color: rgba(220, 216, 206, 0.25);
+  padding: 0 2px;
+}
+
+.dark .prose-citation-quote {
+  border-bottom-color: var(--ink-secondary);
+  background-color: rgba(38, 38, 36, 0.4);
+}
+
+/* ============================================================================ */
+/* ESTILOS DE IMPRESIÓN ACADÉMICA (@media print) PARA GENERACIÓN DE PDF LIMPIO  */
+/* ============================================================================ */
+@media print {
+  @page {
+    margin: 2cm 2.5cm;
+    size: A4 portrait;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Ocultar elementos interactivos no impresos */
+  header,
+  footer,
+  nav,
+  button,
+  .no-print,
+  aside[role="status"] {
+    display: none !important;
+  }
+
+  /* Contenedores sin restricciones de altura ni sombras */
+  main,
+  article,
+  .print-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  /* Tipografía académica */
+  h1 {
+    font-size: 22pt !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.5rem !important;
+    page-break-after: avoid;
+  }
+
+  p {
+    font-size: 11pt !important;
+    text-align: justify !important;
+    orphans: 3;
+    widows: 3;
+  }
+
+  blockquote {
+    border-left: 2pt solid #000000 !important;
+    padding-left: 1rem !important;
+    margin: 1rem 0 !important;
+    font-style: italic !important;
+    page-break-inside: avoid;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+  }
+
+  .print-card {
+    border: 0.5pt solid #cccccc !important;
+    background: #ffffff !important;
+    padding: 10pt !important;
+    margin-bottom: 10pt !important;
+    page-break-inside: avoid;
+  }
+
+  .badge-print {
+    border: 0.5pt solid #000000 !important;
+    background: transparent !important;
+    color: #000000 !important;
   }
 }
